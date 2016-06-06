@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ ! -s gitproject.txt ]; then
-    echo "gitproject.txt missing. Refer to the git-project readme"
+if [ ! -s $GITPROJ ]; then
+    echo "$GITPROJ file missing. Refer to the git-project readme"
     exit 1
 fi
 
@@ -57,14 +57,23 @@ do
     shift
 done
 
-read subrepos < gitproject.txt
+GITPROJ=`realpath .gitproj`
+
+subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' $GITPROJ | tail -n +2 | head -n +2`
+
+echo "---"
+echo "$subrepos"
+echo "---"
 
 # -- SAVE --
 if [ $MODE == INIT ]; then
 
-    while IFS='' read -r line || [[ -n "$line" ]]; do
+    while read -r line || [[ -n "$line" ]]; do
         repo=`echo $line | awk '{print $1}'`;
         url=`echo $line | awk '{print $2}'`;
+
+        echo "cloning repo..."
+        echo "$line"
 
         cd $repo;
         if [ $? -ne 0 ]; then
@@ -79,7 +88,7 @@ if [ $MODE == INIT ]; then
             echo "$repo" >> .gitignore
         fi
 
-    done < gitproject.txt
+    done <<< "$subrepos"
 
 elif [ $MODE == SAVE ] ; then
 
@@ -88,7 +97,7 @@ elif [ $MODE == SAVE ] ; then
         exit 1
     fi
 
-    if ! $FORCE && [ -s .gitproj ]; then
+    if ! $FORCE && [ -s $GITPROJ ]; then
         read -n 1 -p "Saved State already exists. Overwrite? [y/n/q]" overwrite < /dev/tty
         if [ $overwrite != y ]; then
             exit 1;
@@ -99,40 +108,42 @@ elif [ $MODE == SAVE ] ; then
 
     echo "Saving repo state:"
 
-    while IFS='' read -r line || [[ -n "$line" ]]; do
+    sed -i'' -e '/^states:$/,$d'
+    echo "states:" >> $GITPROJ
+
+    while read -r line || [[ -n "$line" ]]; do
+        echo ""; echo ""
+        echo "state ..."
+        echo "$line"
         repo=`echo $line | awk '{print $1}'`
         cd $repo;
         branch=`git branch | grep "*" | awk '{ print $2 }'`;
         commit=`git log | head -n1 | awk '{print $2}'`;
-    #    echo "$file: $branch|$commit";
-        output="$output$repo $branch $commit\n"
+        echo "    - $repo $branch $commit" >> $GITPROJ
         cd - >> /dev/null;
+    done <<< "$subrepos"
 
-    done < gitproject.txt
-
-    printf "$output" > .gitproj
-
-    column -t .gitproj
+#    column -t $GITPROJ
 
     if [ `git status | grep "working directory clean" | wc -l` -eq 1 ]; then
         echo "No changes to be saved"
         exit 0
     fi
 
-    git add .gitproj
+    git add $GITPROJ
     if [ $? -ne 0 ]; then
         echo "Error"
         exit 1
     fi
     git commit -m "Save Steno3D Sub-Repository State"
     if [ $? -ne 0 ]; then
-        echo "Error committing .gitproj"
+        echo "Error committing $GITPROJ"
         exit 1
     fi
 
 elif [ $MODE == LOAD ]; then
 
-    if [ ! -s .gitproj ]; then
+    if [ ! -s $GITPROJ ]; then
         echo "No Saved State.";
         exit -1;
     fi
@@ -214,7 +225,7 @@ elif [ $MODE == LOAD ]; then
         fi
         echo ""
         cd - >> /dev/null;
-    done < .gitproj
+    done < $GITPROJ
 
 elif [ $MODE == USAGE ]; then
     echo "Usage: git project <init|save|load> [--repos <repos>]"
