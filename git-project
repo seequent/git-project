@@ -1,24 +1,55 @@
 #!/bin/bash
 
-if [ ! -s gitproj.txt ]; then
-    echo "gitproj.txt missing. Refer to the git-project readme"
+if [ ! -s gitproject.txt ]; then
+    echo "gitproject.txt missing. Refer to the git-project readme"
     exit 1
 fi
 
-read subrepos < gitproj.txt
+BASE=${PWD##*/}
 
+MODE="USAGE"
+
+# set MODE
+case $1 in
+    init)
+        MODE="INIT"
+        ;;
+    save)
+        MODE="SAVE"
+        ;;
+    load)
+        MODE="LOAD"
+        ;;
+    *)
+        ;;
+esac
+
+shift
+
+FORCE=false
+USECOMMIT=false
+AUTOCLONE=false
+AUTOMERGE=false
+
+# set flags
 while [[ $# -ge 1 ]];
 do
     key="$1"
-
-    echo $key
-
     case $key in
-        save)
-            SAVE=true
+        -f|--force)
+            FORCE=true
             ;;
-        load)
-            LOAD=true
+        -c|--commit)
+            USECOMMIT=true
+            ;;
+        -a|--autoclone)
+            AUTOCLONE=true
+            ;;
+        -m|--automerge)
+            AUTOMERGE=true
+            ;;
+        -r|--repos)
+            echo "Repos not yet implemented"
             ;;
         *)
             ;;
@@ -26,19 +57,39 @@ do
     shift
 done
 
-echo $SAVE
+read subrepos < gitproject.txt
 
 # -- SAVE --
-if $SAVE ; then
+if [ $MODE == INIT ]; then
+
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`;
+        url=`echo $line | awk '{print $2}'`;
+
+        cd $repo;
+        if [ $? -ne 0 ]; then
+            echo "Cloning $repo..."
+            git clone $url $repo
+                
+            if [ $? -ne 0 ]; then
+                echo "Error cloning repo $repo"
+                exit 1
+            fi
+
+            echo "$repo" >> .gitignore
+        fi
+
+    done < gitproject.txt
+
+elif [ $MODE == SAVE ] ; then
 
     if [ `git status | grep "working directory clean" | wc -l` -ne 1 ]; then
         echo "You have uncommitted changes. Please commit these before proceeding"
         exit 1
     fi
 
-    if [ -s .savedstate ]; then
-        echo "Saved State already exists. Overwrite? [y/n] ";
-        read overwrite;
+    if ! $FORCE && [ -s .gitproj ]; then
+        read -n 1 -p "Saved State already exists. Overwrite? [y/n/q]" overwrite < /dev/tty
         if [ $overwrite != y ]; then
             exit 1;
         fi
@@ -47,61 +98,63 @@ if $SAVE ; then
     output=""
 
     echo "Saving repo state:"
-    for file in $subrepos; do
-        cd $file;
+
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`
+        cd $repo;
         branch=`git branch | grep "*" | awk '{ print $2 }'`;
         commit=`git log | head -n1 | awk '{print $2}'`;
     #    echo "$file: $branch|$commit";
-        output="$output$file $branch $commit\n"
+        output="$output$repo $branch $commit\n"
         cd - >> /dev/null;
-    done
 
-    printf "$output" > .savedstate
+    done < gitproject.txt
 
-    column -t .savedstate
+    printf "$output" > .gitproj
+
+    column -t .gitproj
 
     if [ `git status | grep "working directory clean" | wc -l` -eq 1 ]; then
         echo "No changes to be saved"
         exit 0
     fi
 
-    git add .savedstate
+    git add .gitproj
     if [ $? -ne 0 ]; then
         echo "Error"
         exit 1
     fi
     git commit -m "Save Steno3D Sub-Repository State"
     if [ $? -ne 0 ]; then
-        echo "Error committing .savedstate"
+        echo "Error committing .gitproj"
         exit 1
     fi
 
-elif $LOAD; then
+elif [ $MODE == LOAD ]; then
 
-    if [ ! -s .savedstate ]; then
+    if [ ! -s .gitproj ]; then
         echo "No Saved State.";
         exit -1;
     fi
 
-    USECOMMIT=false
-
-    if [ $# -ge 0 ]; then
-        if [ "$1" == "--commit" ]; then
-            USECOMMIT=true;
-        fi
-    fi
-
-    echo "***steno3d***"
+    echo "***$BASE***"
 
     branch=`git branch | grep "*" | awk '{print $2}'`;
 
     git fetch origin --prune
 
     if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
-        read -n 1 -p "There are new commits in steno3d:$branch. Do you want to merge them in? " merge < /dev/tty
+
+        if $AUTOMERGE || $FORCE; then 
+            merge=y
+        else 
+            read -n 1 -p "There are new commits in $BASE:$branch. Do you want to merge them in? [y/n/q] " merge < /dev/tty
+        fi
 
         if [ $merge == y ]; then
             git merge origin/$branch
+        elif [ $merge == q ]; then
+            exit 1
         fi
     else
         echo "Your branch is up-to-date with 'origin/$branch'."
@@ -116,17 +169,19 @@ elif $LOAD; then
 
         cd $repo;
         if [ $? -ne 0 ]; then
-            if [ -n "$AUTOCLONE" ]; then
-                git clone git@github.com:3ptscience/$repo.git -b $branch
-            else
-                read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n] "  clone </dev/tty;
-                if [ $clone == y ]; then
-                    git clone https://github.com/3ptscience/$repo.git -b $branch
-                    if [ $? -ne 0 ]; then
-                        echo "Error cloning repo $sub"
-                        exit 1
-                    fi
+            if $AUTOCLONE || $FORCE; then 
+                clone=y
+            else 
+                read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n/q] "  clone </dev/tty;
+            fi
+            if [ $clone == y ]; then
+                git clone https://github.com/3ptscience/$repo.git -b $branch
+                if [ $? -ne 0 ]; then
+                    echo "Error cloning repo $sub"
+                    exit 1
                 fi
+            elif [ $clone == q ]; then
+                exit 1
             fi
 
             cd $repo;
@@ -140,10 +195,16 @@ elif $LOAD; then
             git fetch origin --prune
             if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
 
-                read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n] "  merge </dev/tty
+                if $AUTOMERGE || $FORCE; then 
+                    merge=y
+                else 
+                    read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
+                fi
 
                 if [ $merge == y ]; then
                     git merge origin/$branch
+                elif [ $merge == q ]; then
+                    exit 1
                 fi
             fi
         fi
@@ -153,9 +214,9 @@ elif $LOAD; then
         fi
         echo ""
         cd - >> /dev/null;
-    done < .savedstate
+    done < .gitproj
 
-else
+elif [ $MODE == USAGE ]; then
     echo "Usage: git project <save|load> [--repos <repos>]"
-    exit 2
+    exit 1
 fi
