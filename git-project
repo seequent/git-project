@@ -1,0 +1,161 @@
+#!/bin/bash
+
+if [ ! -s gitproj.txt ]; then
+    echo "gitproj.txt missing. Refer to the git-project readme"
+    exit 1
+fi
+
+read subrepos < gitproj.txt
+
+while [[ $# -ge 1 ]];
+do
+    key="$1"
+
+    echo $key
+
+    case $key in
+        save)
+            SAVE=true
+            ;;
+        load)
+            LOAD=true
+            ;;
+        *)
+            ;;
+    esac
+    shift
+done
+
+echo $SAVE
+
+# -- SAVE --
+if $SAVE ; then
+
+    if [ `git status | grep "working directory clean" | wc -l` -ne 1 ]; then
+        echo "You have uncommitted changes. Please commit these before proceeding"
+        exit 1
+    fi
+
+    if [ -s .savedstate ]; then
+        echo "Saved State already exists. Overwrite? [y/n] ";
+        read overwrite;
+        if [ $overwrite != y ]; then
+            exit 1;
+        fi
+    fi
+
+    output=""
+
+    echo "Saving repo state:"
+    for file in $subrepos; do
+        cd $file;
+        branch=`git branch | grep "*" | awk '{ print $2 }'`;
+        commit=`git log | head -n1 | awk '{print $2}'`;
+    #    echo "$file: $branch|$commit";
+        output="$output$file $branch $commit\n"
+        cd - >> /dev/null;
+    done
+
+    printf "$output" > .savedstate
+
+    column -t .savedstate
+
+    if [ `git status | grep "working directory clean" | wc -l` -eq 1 ]; then
+        echo "No changes to be saved"
+        exit 0
+    fi
+
+    git add .savedstate
+    if [ $? -ne 0 ]; then
+        echo "Error"
+        exit 1
+    fi
+    git commit -m "Save Steno3D Sub-Repository State"
+    if [ $? -ne 0 ]; then
+        echo "Error committing .savedstate"
+        exit 1
+    fi
+
+elif $LOAD; then
+
+    if [ ! -s .savedstate ]; then
+        echo "No Saved State.";
+        exit -1;
+    fi
+
+    USECOMMIT=false
+
+    if [ $# -ge 0 ]; then
+        if [ "$1" == "--commit" ]; then
+            USECOMMIT=true;
+        fi
+    fi
+
+    echo "***steno3d***"
+
+    branch=`git branch | grep "*" | awk '{print $2}'`;
+
+    git fetch origin --prune
+
+    if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+        read -n 1 -p "There are new commits in steno3d:$branch. Do you want to merge them in? " merge < /dev/tty
+
+        if [ $merge == y ]; then
+            git merge origin/$branch
+        fi
+    else
+        echo "Your branch is up-to-date with 'origin/$branch'."
+    fi
+
+    echo ""
+
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`;
+        branch=`echo $line | awk '{print $2}'`;
+        commit=`echo $line | awk '{print $3}'`;
+
+        cd $repo;
+        if [ $? -ne 0 ]; then
+            if [ -n "$AUTOCLONE" ]; then
+                git clone git@github.com:3ptscience/$repo.git -b $branch
+            else
+                read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n] "  clone </dev/tty;
+                if [ $clone == y ]; then
+                    git clone https://github.com/3ptscience/$repo.git -b $branch
+                    if [ $? -ne 0 ]; then
+                        echo "Error cloning repo $sub"
+                        exit 1
+                    fi
+                fi
+            fi
+
+            cd $repo;
+        fi
+
+        echo "***$repo***"
+        if $USECOMMIT; then
+            git checkout $commit
+        else
+            git checkout $branch
+            git fetch origin --prune
+            if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+
+                read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n] "  merge </dev/tty
+
+                if [ $merge == y ]; then
+                    git merge origin/$branch
+                fi
+            fi
+        fi
+        if [ $? -ne 0 ]; then
+            echo "Encountered an error switching branches. Please fix and re-try"
+            exit 1;
+        fi
+        echo ""
+        cd - >> /dev/null;
+    done < .savedstate
+
+else
+    echo "Usage: git project <save|load> [--repos <repos>]"
+    exit 2
+fi
