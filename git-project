@@ -217,6 +217,6 @@ elif [ $MODE == LOAD ]; then
     done < .gitproj
 
 elif [ $MODE == USAGE ]; then
-    echo "Usage: git project <save|load> [--repos <repos>]"
+    echo "Usage: git project <init|save|load> [--repos <repos>]"
     exit 1
 fi
