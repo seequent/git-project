@@ -34,12 +34,10 @@ Setup
 
 To setup, first create a .gitproj file with the format
 
-```
-repos:
-    sub-repo-name sub-repo-url
-    sub-repo2-name sub-repo2-url
-
-```
+::
+    repos:
+        sub-repo-name sub-repo-url
+        sub-repo2-name sub-repo2-url
 
 Then run `git project init` from the root of your project. This will attempt to clone the sub-repositories
 and add them to your .gitignore. If you have already cloned the sub-repositories, skip this step, but make sure
@@ -61,6 +59,8 @@ To return to this *state* later, just switch to the branch in your base reposito
 If you want to load the exact commits from when you saved the branch (on detatched heads), use `git project load --commit`.
 
 Optional parameters are:
+
+::
     --autoclone (-a): Autoclone repos in .gitproj that aren't in the directory
     --automerge (-m): Automerge branch updates when loading
     --force (-f): don't prompt, will automatically merge or clone when loading, and overwrite .gitproj when saving
