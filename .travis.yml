@@ -14,7 +14,7 @@ cache:
 env:
     - TEST_DIR="test"
 
-before-install:
+before_install:
     git config --global user.email "test@test.com"
     git config --global user.name "test"
     git config --global push.default simple
