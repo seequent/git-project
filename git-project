@@ -174,7 +174,7 @@ elif [ $MODE == LOAD ]; then
 
     echo ""
 
-    subrepos=`sed -n -e '/^states:$/,$p' $GITPROJ | tail -n +2`
+    subrepos=`sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'`
 
     while IFS='' read -r line || [[ -n "$line" ]]; do
         repo=`echo $line | awk '{print $1}'`;
