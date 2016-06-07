@@ -13,7 +13,7 @@ help:
 	@echo
 
 install: 
-	@chmod 500 git-project
+	@chmod 555 git-project
 	cp git-project /usr/local/bin
 
 uninstall:
