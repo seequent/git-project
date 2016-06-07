@@ -24,10 +24,10 @@ with a single command.
 Install
 -------
 
-Run `sudo make install`
+Run :code:`sudo make install`
 This will install the git-project bash script into your /usr/local/bin/. 
 
-To uninstall, simply run `sudo make uninstall`
+To uninstall, simply run :code:`sudo make uninstall`
 
 Setup
 -----
@@ -40,7 +40,7 @@ To setup, first create a .gitproj file with the format
         sub-repo-name sub-repo-url
         sub-repo2-name sub-repo2-url
 
-Then run `git project init` from the root of your project. This will attempt to clone the sub-repositories
+Then run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories
 and add them to your .gitignore. If you have already cloned the sub-repositories, skip this step, but make sure
 the sub-repositories are listed in your .gitignore.
 
@@ -51,13 +51,13 @@ Usage
 git-project saves the *state* of your repository and subrepositories. A *state* is the collection of feature branches for 
 each repository.
 
-To save the *state*, call `git project save`
+To save the *state*, call :code:`git project save`
 This writes the current branches for all your subrepositories, as well as the latest commit on each branch, into the .gitproj file.
 The .gitproj file is then automatically committed for you.
 
-To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run `git project load`. If there are new commits on any of the branches in the *state*, git-project will prompt you to merge them in.
+To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. If there are new commits on any of the branches in the *state*, git-project will prompt you to merge them in.
 
-If you want to load the exact commits from when you saved the branch (on detatched heads), use `git project load --commit`.
+If you want to load the exact commits from when you saved the branch (on detatched heads), use :code:`git project load --commit`.
 
 Optional parameters are:
 
