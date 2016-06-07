@@ -1,0 +1,32 @@
+language: python
+python:
+  - 2.7
+
+sudo: true
+
+cache:
+  timeout: 3600
+  pip: true
+  directory:
+  - ${HOME}/google_appengine
+  - ${HOME}/google-cloud-sdk
+
+env:
+    - TEST_DIR="test"
+
+before_install:
+    - git config --global user.email "test@test.com"
+    - git config --global user.name "test"
+    - git config --global push.default simple
+
+# Install packages
+install:
+    sudo make install
+
+# Run test
+script:
+  - nosetests $TEST_DIR
+
+notifications:
+  slack: 3point:n4uGopqXrpbYFbslpV5z0tyO
+  email: false

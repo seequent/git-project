@@ -1,0 +1,235 @@
+#!/bin/bash
+
+if [ ! -s .gitproj ]; then
+    echo ".gitproj file missing. Refer to the git-project readme"
+    exit 1
+fi
+
+UNAME=$(uname)
+
+BASE=${PWD##*/}
+
+MODE="USAGE"
+
+# set MODE
+case $1 in
+    init)
+        MODE="INIT"
+        ;;
+    save)
+        MODE="SAVE"
+        ;;
+    load)
+        MODE="LOAD"
+        ;;
+    *)
+        ;;
+esac
+
+shift
+
+FORCE=false
+USECOMMIT=false
+AUTOCLONE=false
+AUTOMERGE=false
+
+# set flags
+while [[ $# -ge 1 ]];
+do
+    key="$1"
+    case $key in
+        -f|--force)
+            FORCE=true
+            ;;
+        -c|--commit)
+            USECOMMIT=true
+            ;;
+        -a|--autoclone)
+            AUTOCLONE=true
+            ;;
+        -m|--automerge)
+            AUTOMERGE=true
+            ;;
+        -r|--repos)
+            echo "Repos not yet implemented"
+            ;;
+        *)
+            ;;
+    esac
+    shift
+done
+
+if [ "$UNAME" == 'Linux' ]; then
+    GITPROJ=`readlink -f .gitproj`
+elif [ "$UNAME" == 'Darwin' ]; then
+    GITPROJ=`realpath .gitproj`
+fi
+
+subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' $GITPROJ | tail -n +2 | head -n +2`
+
+
+if [ $MODE == INIT ]; then
+
+    while read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`;
+        url=`echo $line | awk '{print $2}'`;
+
+        echo "cloning repo..."
+        echo "$line"
+
+        cd $repo;
+        if [ $? -ne 0 ]; then
+            echo "Cloning $repo..."
+            git clone $url $repo
+                
+            if [ $? -ne 0 ]; then
+                echo "Error cloning repo $repo"
+                exit 1
+            fi
+
+            echo "$repo" >> .gitignore
+        fi
+
+    done <<< "$subrepos"
+
+elif [ $MODE == SAVE ] ; then
+
+    if [ `git status | grep "working directory clean" | wc -l` -ne 1 ]; then
+        echo "You have uncommitted changes. Please commit these before proceeding"
+        exit 1
+    fi
+
+    if ! $FORCE && [ -s $GITPROJ ]; then
+        read -n 1 -p "Saved State already exists. Overwrite? [y/n/q]" overwrite < /dev/tty
+        if [ $overwrite != y ]; then
+            exit 1;
+        fi
+    fi
+
+    output=""
+
+    echo "Saving repo state:"
+    echo $GITPROJ
+
+    sed -i'' -e '/^states:$/,$d' $GITPROJ
+    echo "states:" >> $GITPROJ
+
+    while read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`
+        cd $repo;
+        branch=`git branch | grep "*" | awk '{ print $2 }'`;
+        commit=`git log | head -n1 | awk '{print $2}'`;
+        echo "    $repo $branch $commit" >> $GITPROJ
+        cd - >> /dev/null;
+    done <<< "$subrepos"
+
+#    column -t $GITPROJ
+
+    if [ `git status | grep "working directory clean" | wc -l` -eq 1 ]; then
+        echo "No changes to be saved"
+        exit 0
+    fi
+
+    git add $GITPROJ
+    if [ $? -ne 0 ]; then
+        echo "Error"
+        exit 1
+    fi
+    git commit -m "Save Steno3D Sub-Repository State"
+    if [ $? -ne 0 ]; then
+        echo "Error committing $GITPROJ"
+        exit 1
+    fi
+
+elif [ $MODE == LOAD ]; then
+
+    if [ ! -s $GITPROJ ]; then
+        echo "No Saved State.";
+        exit -1;
+    fi
+
+    echo "***$BASE***"
+
+    branch=`git branch | grep "*" | awk '{print $2}'`;
+
+    git fetch origin --prune
+
+    if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+
+        if $AUTOMERGE || $FORCE; then 
+            merge=y
+        else 
+            read -n 1 -p "There are new commits in $BASE:$branch. Do you want to merge them in? [y/n/q] " merge < /dev/tty
+        fi
+
+        if [ $merge == y ]; then
+            git merge origin/$branch
+        elif [ $merge == q ]; then
+            exit 1
+        fi
+    else
+        echo "Your branch is up-to-date with 'origin/$branch'."
+    fi
+
+    echo ""
+
+    subrepos=`sed -n -e '/^states:$/,$p' $GITPROJ | tail -n +2`
+
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`;
+        branch=`echo $line | awk '{print $2}'`;
+        commit=`echo $line | awk '{print $3}'`;
+
+        cd $repo;
+        if [ $? -ne 0 ]; then
+            if $AUTOCLONE || $FORCE; then 
+                clone=y
+            else 
+                read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n/q] "  clone </dev/tty;
+            fi
+            if [ $clone == y ]; then
+                git clone https://github.com/3ptscience/$repo.git -b $branch
+                if [ $? -ne 0 ]; then
+                    echo "Error cloning repo $sub"
+                    exit 1
+                fi
+            elif [ $clone == q ]; then
+                exit 1
+            fi
+
+            cd $repo;
+        fi
+
+        echo "***$repo***"
+        if $USECOMMIT; then
+            git checkout $commit
+        else
+            git checkout $branch
+            git fetch origin --prune
+            if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+
+                if $AUTOMERGE || $FORCE; then 
+                    merge=y
+                else 
+                    read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
+                fi
+
+                if [ $merge == y ]; then
+                    git merge origin/$branch
+                elif [ $merge == q ]; then
+                    exit 1
+                fi
+            fi
+        fi
+        if [ $? -ne 0 ]; then
+            echo "Encountered an error switching branches. Please fix and re-try"
+            exit 1;
+        fi
+        echo ""
+        cd - >> /dev/null;
+    done <<< "$subrepos" 
+
+elif [ $MODE == USAGE ]; then
+    echo "Usage: git project <init|save|load> [--repos <repos>]"
+    exit 1
+fi
