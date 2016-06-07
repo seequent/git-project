@@ -13,7 +13,7 @@ help:
 	@echo
 
 install: 
-	@chmod 555 git-project
+	@chmod 755 git-project
 	cp git-project /usr/local/bin
 
 install-local:
