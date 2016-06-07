@@ -65,7 +65,12 @@ elif [ "$UNAME" == 'Darwin' ]; then
     GITPROJ=`realpath .gitproj`
 fi
 
-subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' $GITPROJ | tail -n +2 | head -n +2`
+grep "states:" $GITPROJ
+if [ $? -ne 0 ]; then
+    subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,$p' | tail -n +2`
+else
+    subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' | tail -n +2 | tail -r | tail -n +2 | tail -r`
+fi
 
 
 if [ $MODE == INIT ]; then
