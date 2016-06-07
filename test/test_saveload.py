@@ -35,7 +35,6 @@ class TestSaveLoad(unittest.TestCase):
         output = subprocess.check_output('cd local/parent; ls | grep child | awk \'{print $1}\'', shell=True)
         self.assertEqual(output, 'child\n')
 
-#        output = subprocess.check_output('cd local/parent/child; git remote get-url origin | grep remote/child | wc -l', shell=True)
         output = subprocess.check_output('cd local/parent/child; git remote show origin | grep Fetch | grep remote/child | wc -l', shell=True)
 
         self.assertEqual(output.strip().replace('\n',''), '1')
@@ -44,7 +43,6 @@ class TestSaveLoad(unittest.TestCase):
         output = subprocess.check_output('cd local/parent/child; ls | grep child2 | awk \'{print $1}\'', shell=True)
         self.assertEqual(output, 'child2\n')
 
-#        output = subprocess.check_output('cd local/parent/child/child2; git remote get-url origin | grep remote/child2 | wc -l', shell=True)
         output = subprocess.check_output('cd local/parent/child/child2; git remote show origin | grep Fetch | grep remote/child2 | wc -l', shell=True)
 
         self.assertEqual(output.strip().replace('\n',''), '1')
@@ -53,14 +51,15 @@ class TestSaveLoad(unittest.TestCase):
         subprocess.call('cd local/parent/child; echo "Asdf" > test.txt; git add test.txt; git commit -m "Initial Commit"; git push', shell=True)
         subprocess.call('cd local/parent/child/child2; echo "Asdf" > test.txt; git add test.txt; git commit -m "Initial Commit"; git push', shell=True)
 
+
         subprocess.call('cd local/parent; git project save -f', shell=True)
+
 
         self.assertTrue(os.path.isfile('local/parent/.gitproj'))
 
         output = subprocess.check_output('cd local/parent; cat .gitproj | tail -n2 | awk \'{print $1, $2}\'', shell=True)
 
         self.assertEqual(output, 'child master\nchild/child2 master\n')
-
 
         subprocess.call('cd local/parent; git checkout -b dev; cd child; git checkout -b dev; cd child2; git checkout -b feature', shell=True)
 
@@ -74,7 +73,6 @@ class TestSaveLoad(unittest.TestCase):
 
         output = subprocess.check_output('cd local/parent; cat .gitproj | tail -n2 | awk \'{print $1, $2}\'', shell=True)
         self.assertEqual(output, 'child master\nchild/child2 master\n')
-
 
 
     @classmethod

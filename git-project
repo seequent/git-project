@@ -68,7 +68,6 @@ fi
 subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' $GITPROJ | tail -n +2 | head -n +2`
 
 
-# -- SAVE --
 if [ $MODE == INIT ]; then
 
     while read -r line || [[ -n "$line" ]]; do
@@ -110,6 +109,7 @@ elif [ $MODE == SAVE ] ; then
     output=""
 
     echo "Saving repo state:"
+    echo $GITPROJ
 
     sed -i'' -e '/^states:$/,$d' $GITPROJ
     echo "states:" >> $GITPROJ
