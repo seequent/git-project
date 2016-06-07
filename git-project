@@ -61,15 +61,17 @@ done
 
 if [ "$UNAME" == 'Linux' ]; then
     GITPROJ=`readlink -f .gitproj`
+    reverse="tac"
 elif [ "$UNAME" == 'Darwin' ]; then
     GITPROJ=`realpath .gitproj`
+    reverse="tail -r"
 fi
 
 grep "states:" $GITPROJ
 if [ $? -ne 0 ]; then
     subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,$p' | tail -n +2`
 else
-    subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' | tail -n +2 | tail -r | tail -n +2 | tail -r`
+    subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' | tail -n +2 | $reverse | tail -n +2 | $reverse`
 fi
 
 
