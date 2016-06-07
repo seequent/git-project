@@ -53,30 +53,30 @@ class TestSaveLoad(unittest.TestCase):
 
         self.assertTrue(os.path.isfile('local/parent/.gitproj'))
 
-#        output = subprocess.check_output('cd local/parent; cat .gitproj | awk \'{print $1, $2}\'', shell=True)
-#
-#        self.assertEqual(output, 'child master\nchild/child2 master\n')
-#
-#
-#        subprocess.call('cd local/parent; git checkout -b dev; cd child; git checkout -b dev; cd child2; git checkout -b feature', shell=True)
-#
-#        subprocess.call('cd local/parent; git project save -f', shell=True)
-#
-#
-#        output = subprocess.check_output('cd local/parent; cat .gitproj | awk \'{print $1, $2}\'', shell=True)
-#        self.assertEqual(output, 'child dev\nchild/child2 feature\n')
-#
-#        subprocess.call('cd local/parent; git checkout master; git project load', shell=True)
-#
-#        output = subprocess.check_output('cd local/parent; cat .gitproj | awk \'{print $1, $2}\'', shell=True)
-#        self.assertEqual(output, 'child master\nchild/child2 master\n')
+        output = subprocess.check_output('cd local/parent; cat .gitproj | tail -n2 | awk \'{print $1, $2}\'', shell=True)
+
+        self.assertEqual(output, 'child master\nchild/child2 master\n')
+
+
+        subprocess.call('cd local/parent; git checkout -b dev; cd child; git checkout -b dev; cd child2; git checkout -b feature', shell=True)
+
+        subprocess.call('cd local/parent; git project save -f', shell=True)
+
+
+        output = subprocess.check_output('cd local/parent; cat .gitproj | tail -n2 | awk \'{print $1, $2}\'', shell=True)
+        self.assertEqual(output, 'child dev\nchild/child2 feature\n')
+
+        subprocess.call('cd local/parent; git checkout master; git project load', shell=True)
+
+        output = subprocess.check_output('cd local/parent; cat .gitproj | tail -n2 | awk \'{print $1, $2}\'', shell=True)
+        self.assertEqual(output, 'child master\nchild/child2 master\n')
 
 
 
-#    @classmethod
-#    def tearDownClass(self):
-#
-#        subprocess.call('rm -rf remote local', shell=True)
+    @classmethod
+    def tearDownClass(self):
+
+        subprocess.call('rm -rf remote local', shell=True)
 
 if __name__ == '__main__':
     unittest.main()
