@@ -35,13 +35,15 @@ class TestSaveLoad(unittest.TestCase):
         output = subprocess.check_output('cd local/parent; ls | grep child | awk \'{print $1}\'', shell=True)
         self.assertEqual(output, 'child\n')
 
-        output = subprocess.check_output('cd local/parent/child; git remote get-url origin | grep remote/child | wc -l', shell=True)
+#        output = subprocess.check_output('cd local/parent/child; git remote get-url origin | grep remote/child | wc -l', shell=True)
+        output = subprocess.check_output('cd local/parent/child; git remote show origin | grep Fetch | grep remote/child | wc -l', shell=True)
 
 
         output = subprocess.check_output('cd local/parent/child; ls | grep child2 | awk \'{print $1}\'', shell=True)
         self.assertEqual(output, 'child2\n')
 
-        output = subprocess.check_output('cd local/parent/child/child2; git remote get-url origin | grep remote/child2 | wc -l', shell=True)
+#        output = subprocess.check_output('cd local/parent/child/child2; git remote get-url origin | grep remote/child2 | wc -l', shell=True)
+        output = subprocess.check_output('cd local/parent/child/child2; git remote show origin | grep Fetch | grep remote/child2 | wc -l', shell=True)
 
         self.assertEqual(output, '       1\n')
 

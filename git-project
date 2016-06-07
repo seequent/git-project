@@ -59,9 +59,6 @@ do
     shift
 done
 
-echo "$UNAME"
-
-
 if [ "$UNAME" == 'Linux' ]; then
     GITPROJ=`readlink -f .gitproj`
 elif [ "$UNAME" == 'Darwin' ]; then
