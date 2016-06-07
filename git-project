@@ -140,7 +140,7 @@ elif [ $MODE == SAVE ] ; then
         echo "Error"
         exit 1
     fi
-    git commit -m "Save Steno3D Sub-Repository State"
+    git commit -m "Save Sub-Repository State"
     if [ $? -ne 0 ]; then
         echo "Error committing $GITPROJ"
         exit 1
