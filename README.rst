@@ -35,6 +35,7 @@ Setup
 To setup, first create a .gitproj file with the format
 
 ::
+
     repos:
         sub-repo-name sub-repo-url
         sub-repo2-name sub-repo2-url
@@ -61,6 +62,7 @@ If you want to load the exact commits from when you saved the branch (on detatch
 Optional parameters are:
 
 ::
+
     --autoclone (-a): Autoclone repos in .gitproj that aren't in the directory
     --automerge (-m): Automerge branch updates when loading
     --force (-f): don't prompt, will automatically merge or clone when loading, and overwrite .gitproj when saving
