@@ -17,8 +17,7 @@ install:
 	cp git-project /usr/local/bin
 
 install-local:
-	@mkdir ~/git-project
-	@mkdir ~/git-project/bin
+	@mkdir -p ~/git-project/bin
 	cp git-project ~/git-project/bin
 
 uninstall:
