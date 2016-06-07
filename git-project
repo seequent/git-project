@@ -5,6 +5,8 @@ if [ ! -s .gitproj ]; then
     exit 1
 fi
 
+UNAME=$(uname)
+
 BASE=${PWD##*/}
 
 MODE="USAGE"
@@ -57,7 +59,13 @@ do
     shift
 done
 
-GITPROJ=`realpath .gitproj`
+echo "$UNAME"
+
+if [ "$UNAME" == 'Linux' ]; then
+    GITPROJ=`readlink -f .gitproj`
+elif [ "$UNAME" == 'Darwin' ]; then
+    GITPROJ=`realpath .gitproj`
+fi
 
 subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' $GITPROJ | tail -n +2 | head -n +2`
 
