@@ -16,9 +16,11 @@ install:
 	@chmod 555 git-project
 	cp git-project /usr/local/bin
 
+install-local:
+	@mkdir ~/git-project
+	@mkdir ~/git-project/bin
+	cp git-project ~/git-project/bin
+
 uninstall:
 	rm /usr/local/bin/git-project
 
-test:
-	cp git-project /usr/local/bin
-	
