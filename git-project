@@ -59,11 +59,13 @@ do
     shift
 done
 
-if [ "$UNAME" == 'Linux' ]; then
-    GITPROJ=`readlink -f .gitproj`
-elif [ "$UNAME" == 'Darwin' ]; then
-    GITPROJ=`realpath .gitproj`
-fi
+#if [ "$UNAME" == 'Linux' ]; then
+#    GITPROJ=`readlink -f .gitproj`
+#elif [ "$UNAME" == 'Darwin' ]; then
+#    GITPROJ=`realpath .gitproj`
+#fi
+
+GITPROJ=$(pwd)/.gitproj
 
 grep "states:" $GITPROJ
 subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' | grep -v ':$'`
@@ -189,6 +191,7 @@ elif [ $MODE == LOAD ]; then
                 read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n/q] "  clone </dev/tty;
             fi
             if [ $clone == y ]; then
+                # TODO: Replace with actual repo location...
                 git clone https://github.com/3ptscience/$repo.git -b $branch
                 if [ $? -ne 0 ]; then
                     echo "Error cloning repo $sub"
