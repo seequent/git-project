@@ -22,6 +22,9 @@ case $1 in
     load)
         MODE="LOAD"
         ;;
+    show)
+        MODE="SHOW"
+        ;;
     *)
         ;;
 esac
@@ -94,6 +97,10 @@ if [ $MODE == INIT ]; then
         fi
 
     done <<< "$subrepos"
+
+elif [ $MODE == SHOW ] ; then
+
+    echo `sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'`
 
 elif [ $MODE == SAVE ] ; then
 
