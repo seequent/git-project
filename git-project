@@ -100,7 +100,12 @@ if [ $MODE == INIT ]; then
 
 elif [ $MODE == SHOW ] ; then
 
-    sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
+    hash column 2>/dev/null
+    if [ $? -eq 0 ] ; then
+        sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$' | column -t
+    else
+        sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
+    fi
 
 elif [ $MODE == SAVE ] ; then
 
