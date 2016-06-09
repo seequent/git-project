@@ -100,7 +100,7 @@ if [ $MODE == INIT ]; then
 
 elif [ $MODE == SHOW ] ; then
 
-    echo `sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'`
+    sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
 
 elif [ $MODE == SAVE ] ; then
 
