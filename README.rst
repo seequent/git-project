@@ -72,7 +72,7 @@ Optional parameters are:
 Bugs
 ----
 
-git-project is still in development. Use at your own risk. To report bugs or features, please email mfirmin@3ptscience.com
+git-project is still in the very early stages of development. Use at your own risk. To report bugs or request features, please email mfirmin@3ptscience.com
 
 
 
