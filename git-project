@@ -188,7 +188,7 @@ elif [ $MODE == LOAD ]; then
 
     echo ""
 
-    subrepos=`sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'`
+    repoStates=`sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'`
 
     while IFS='' read -r line || [[ -n "$line" ]]; do
         repo=`echo $line | awk '{print $1}'`;
@@ -204,7 +204,11 @@ elif [ $MODE == LOAD ]; then
             fi
             if [ $clone == y ]; then
                 # TODO: Replace with actual repo location...
-                git clone https://github.com/3ptscience/$repo.git -b $branch
+                repoUrl=$(echo "$subrepos" | grep "\s$repo\s" | awk '{print $2}')
+                echo "looking for $repo in "
+                echo "$subrepos"
+                echo "found $repoUrl"
+                git clone $repoUrl $repo -b $branch
                 if [ $? -ne 0 ]; then
                     echo "Error cloning repo $sub"
                     exit 1
@@ -243,7 +247,7 @@ elif [ $MODE == LOAD ]; then
         fi
         echo ""
         cd - >> /dev/null;
-    done <<< "$subrepos" 
+    done <<< "$repoStates" 
 
 elif [ $MODE == USAGE ]; then
     echo "Usage: git project <init|save|load> [--repos <repos>]"
