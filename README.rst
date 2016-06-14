@@ -24,10 +24,10 @@ with a single command.
 Install
 -------
 
-Run :code:`sudo make install`
+Run :code:`make install` (or :code:`sudo make install`)
 This will install the git-project bash script into your /usr/local/bin/. 
 
-To uninstall, simply run :code:`sudo make uninstall`
+To uninstall, simply run :code:`make uninstall`
 
 Setup
 -----
