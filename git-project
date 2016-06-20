@@ -225,7 +225,6 @@ elif [ $MODE == LOAD ]; then
                 read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n/q] "  clone </dev/tty;
             fi
             if [ $clone == y ]; then
-                # TODO: Replace with actual repo location...
                 repoUrl=$(echo "$subrepos" | grep "\s$repo\s" | awk '{print $2}')
                 echo "looking for $repo in "
                 echo "$subrepos"
@@ -237,6 +236,8 @@ elif [ $MODE == LOAD ]; then
                 fi
             elif [ $clone == q ]; then
                 finish 1
+            else
+                continue
             fi
 
             cd $repo;
