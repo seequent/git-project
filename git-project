@@ -47,8 +47,8 @@ case $1 in
     load)
         MODE="LOAD"
         ;;
-    show)
-        MODE="SHOW"
+    status)
+        MODE="STATUS"
         ;;
     *)
         ;;
@@ -88,7 +88,6 @@ do
     shift
 done
 
-grep "states:" $GITPROJ
 subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' | grep -v ':$'`
 
 if [ $MODE == INIT ]; then
@@ -115,14 +114,49 @@ if [ $MODE == INIT ]; then
 
     done <<< "$subrepos"
 
-elif [ $MODE == SHOW ] ; then
+elif [ $MODE == STATUS ] ; then
 
+    columnExists=false
     hash column 2>/dev/null
     if [ $? -eq 0 ] ; then
+        columnExists=true
+    fi
+
+    output=""
+    while read -r line || [[ -n "$line" ]]; do
+        repo=`echo $line | awk '{print $1}'`;
+
+        cd $repo;
+        if [ $? -ne 0 ]; then
+            output="$output\n$repo >>>>>DOES NOT EXIST. CLONE FIRST<<<<<"
+        else
+            branch=$(git branch | grep "*" | awk '{ print $2 }')
+            commit=$(git log | head -n1 | awk '{print $2}')
+            output="$output\n$repo $branch $commit"
+        fi
+        cd - >> /dev/null
+    done <<< "$subrepos"
+
+    echo ""
+    echo "-----CURRENT STATE (to be written on 'git project save')-----"
+    echo ""
+    if $columnExists ; then
+        echo -e "$output" | column -t
+    else
+        echo -e "$output" 
+    fi
+
+    echo ""
+
+    echo "-----SAVED STATE (currently in .gitproj)-----"
+    echo ""
+
+    if $columnExists ; then
         sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$' | column -t
     else
         sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
     fi
+    echo ""
 
 elif [ $MODE == SAVE ] ; then
 
@@ -137,8 +171,6 @@ elif [ $MODE == SAVE ] ; then
             finish 1;
         fi
     fi
-
-    output=""
 
     echo "Saving repo state:"
     echo $GITPROJ
