@@ -1,8 +1,8 @@
 git-project
 ***********
 
-.. image:: https://travis-ci.com/3ptscience/git-project.svg?token=UXRQdDyJzZHqcFWUiw4y&branch=master
-    :target: https://travis-ci.com/3ptscience/git-project
+.. image:: https://travis-ci.org/3ptscience/git-project.svg?branch=master&branch=master
+    :target: https://travis-ci.org/3ptscience/git-project
 
 Scripts extending git for better project and sub-repository management
 
