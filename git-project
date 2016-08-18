@@ -5,7 +5,7 @@ CWD=$(pwd)
 # --- Define Functions ---
 finish (){
     cd $CWD
-    exit $1 
+    exit $1
 }
 
 # Switch to root directory and ensure
@@ -19,9 +19,9 @@ if [ ! -s .gitproj ]; then
     finish 0
 fi
 # Location of .gitproj
-GITPROJ=$(pwd)/.gitproj 
+GITPROJ=$(pwd)/.gitproj
 # name of repository
-BASE=${PWD##*/} 
+BASE=${PWD##*/}
 # operation mode
 MODE="USAGE"
 
@@ -103,7 +103,7 @@ if [ $MODE == INIT ]; then
         if [ $? -ne 0 ]; then
             echo "Cloning $repo..."
             git clone $url $repo
-                
+
             if [ $? -ne 0 ]; then
                 echo "Error cloning repo $repo"
                 finish 1
@@ -143,7 +143,7 @@ elif [ $MODE == STATUS ] ; then
     if $columnExists ; then
         echo -e "$output" | column -t
     else
-        echo -e "$output" 
+        echo -e "$output"
     fi
 
     echo ""
@@ -251,9 +251,9 @@ elif [ $MODE == LOAD ]; then
 
         cd $repo;
         if [ $? -ne 0 ]; then
-            if $AUTOCLONE || $FORCE; then 
+            if $AUTOCLONE || $FORCE; then
                 clone=y
-            else 
+            else
                 read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n/q] "  clone </dev/tty;
             fi
             if [ $clone == y ]; then
@@ -302,7 +302,7 @@ elif [ $MODE == LOAD ]; then
         fi
         echo ""
         cd - >> /dev/null;
-    done <<< "$repoStates" 
+    done <<< "$repoStates"
 
 elif [ $MODE == USAGE ]; then
     echo "Usage: git project <init|save|load> [--repos <repos>]"
