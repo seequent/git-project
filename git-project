@@ -61,6 +61,7 @@ FORCE=false
 USECOMMIT=false
 AUTOCLONE=false
 AUTOMERGE=false
+UPDATE=false
 
 # set flags
 while [[ $# -ge 1 ]];
@@ -78,6 +79,9 @@ do
             ;;
         -m|--automerge)
             AUTOMERGE=true
+            ;;
+	    -u|--update)
+            UPDATE=true
             ;;
         -r|--repos)
             echo "Repos not yet implemented"
@@ -225,16 +229,18 @@ elif [ $MODE == LOAD ]; then
 
     if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
 
-        if $AUTOMERGE || $FORCE; then 
-            merge=y
-        else 
-            read -n 1 -p "There are new commits in $BASE:$branch. Do you want to merge them in? [y/n/q] " merge < /dev/tty
-        fi
+        if $UPDATE || $AUTOMERGE || $FORCE; then
+            if $AUTOMERGE || $FORCE; then
+                merge=y
+            else
+                read -n 1 -p "There are new commits in $BASE:$branch. Do you want to merge them in? [y/n/q] " merge < /dev/tty
+            fi
 
-        if [ $merge == y ]; then
-            git merge origin/$branch
-        elif [ $merge == q ]; then
-            finish 1
+            if [ $merge == y ]; then
+                git merge origin/$branch
+            elif [ $merge == q ]; then
+                finish 1
+            fi
         fi
     else
         echo "Your branch is up-to-date with 'origin/$branch'."
@@ -279,20 +285,22 @@ elif [ $MODE == LOAD ]; then
         if $USECOMMIT; then
             git checkout $commit
         else
-            git checkout $branch
+            git checkout -B $branch $commit
             git fetch origin --prune
             if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
 
-                if $AUTOMERGE || $FORCE; then 
-                    merge=y
-                else 
-                    read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
-                fi
+                if $UPDATE || $AUTOMERGE || $FORCE; then
+                    if $AUTOMERGE || $FORCE; then
+                        merge=y
+                    else
+                        read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
+                    fi
 
-                if [ $merge == y ]; then
-                    git merge origin/$branch
-                elif [ $merge == q ]; then
-                    finish 1
+                    if [ $merge == y ]; then
+                        git merge origin/$branch
+                    elif [ $merge == q ]; then
+                        finish 1
+                    fi
                 fi
             fi
         fi
