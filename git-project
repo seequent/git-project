@@ -285,6 +285,13 @@ elif [ $MODE == LOAD ]; then
         if $USECOMMIT; then
             git checkout $commit
         else
+            if [ `git status -sb | grep "ahead"` ]; then
+                git push
+                if [ $? != 0 ]; then
+                    echo "You have un-pushed state and a simple push failed; refusing to orphan your commits"
+                    finish 1
+                fi
+            fi
             git checkout -B $branch $commit
             git fetch origin --prune
             if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
