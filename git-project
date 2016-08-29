@@ -285,28 +285,38 @@ elif [ $MODE == LOAD ]; then
         if $USECOMMIT; then
             git checkout $commit
         else
-            if [ `git status -sb | grep "ahead"` ]; then
-                git push
+            checkout=n
+            if [ `git status -sb | grep "ahead" | wc -l` -ne 0 ]; then
+                read -n 1 -p "You have un-pushed work in $repo. Do you want to push to the default remote? [y/n/q] " push < /dev/tty;
+
+                if [ $push == y ]; then
+                    git push
+                    checkout=y
+                elif [ $push == q ]; then
+                    finish 1
+                fi
                 if [ $? != 0 ]; then
                     echo "You have un-pushed state and a simple push failed; refusing to orphan your commits"
                     finish 1
                 fi
             fi
-            git checkout -B $branch $commit
-            git fetch origin --prune
-            if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+            if [ $checkout == y ]; then
+                git checkout -B $branch $commit
+                git fetch origin --prune
+                if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
 
-                if $UPDATE || $AUTOMERGE || $FORCE; then
-                    if $AUTOMERGE || $FORCE; then
-                        merge=y
-                    else
-                        read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
-                    fi
+                    if $UPDATE || $AUTOMERGE || $FORCE; then
+                        if $AUTOMERGE || $FORCE; then
+                            merge=y
+                        else
+                            read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
+                        fi
 
-                    if [ $merge == y ]; then
-                        git merge origin/$branch
-                    elif [ $merge == q ]; then
-                        finish 1
+                        if [ $merge == y ]; then
+                            git merge origin/$branch
+                        elif [ $merge == q ]; then
+                            finish 1
+                        fi
                     fi
                 fi
             fi
