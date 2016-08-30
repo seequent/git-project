@@ -285,8 +285,9 @@ elif [ $MODE == LOAD ]; then
         if $USECOMMIT; then
             git checkout $commit
         else
-            checkout=n
+            checkout=y
             if [ `git status -sb | grep "ahead" | wc -l` -ne 0 ]; then
+                checkout=n
                 read -n 1 -p "You have un-pushed work in $repo. Do you want to push to the default remote? [y/n/q] " push < /dev/tty;
 
                 if [ $push == y ]; then
