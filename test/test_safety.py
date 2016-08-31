@@ -58,7 +58,7 @@ class TestSafety(unittest.TestCase):
 
         subprocess.call('cd local/parent; git project load --update -f', shell=True)
 
-        # ensure git project load DID NOT update the child repo
+        # ensure git project load --update DOES update the child repo, as per previous functionality
         output = subprocess.check_output('cd local/parent/child; git status | grep "behind" | wc -l', shell=True)
         self.assertEqual(output.strip().replace('\n',''), '0')
 
