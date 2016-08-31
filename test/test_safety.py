@@ -56,6 +56,12 @@ class TestSafety(unittest.TestCase):
         output = subprocess.check_output('cd local/parent/child; git status | grep "behind" | wc -l', shell=True)
         self.assertEqual(output.strip().replace('\n',''), '1')
 
+        subprocess.call('cd local/parent; git project load --update -f', shell=True)
+
+        # ensure git project load DID NOT update the child repo
+        output = subprocess.check_output('cd local/parent/child; git status | grep "behind" | wc -l', shell=True)
+        self.assertEqual(output.strip().replace('\n',''), '0')
+
 
     @classmethod
     def tearDownClass(self):
