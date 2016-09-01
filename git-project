@@ -62,10 +62,14 @@ update = False
 # ------------------------------------------------------------------------
 # parse args
 
+only_these = []
+flags_done = False
 args_iter = 2
 while args_iter < argc:
     arg = argv[args_iter]
-    if arg == '-f' or arg == '--force':
+    if flags_done:
+        only_these.append(arg)
+    elif arg == '-f' or arg == '--force':
         force = True
     elif arg == '-c' or arg == '--commit':
         usecommit = True
@@ -77,6 +81,8 @@ while args_iter < argc:
         update = True
     elif arg == '--autopush':
         autopush = True # for testing purposes only
+    elif arg == '--':
+        flags_done = True
     else:
         usage()
 
@@ -147,7 +153,13 @@ elif MODE == 'save':
             elif char == 'y':
                 break
 
-    for repo, repo_info in subrepo_info.items():
+    if len(only_these) > 0:
+        repos_to_update = only_these
+    else:
+        repos_to_update = subrepos
+
+    for repo in repos_to_update:
+        repo_info = subrepo_info[repo]
         os.chdir(repo)
         branch = subprocess.check_output('git branch | grep "*" | awk \'{ print $2 }\'', shell=True).strip()
         commit = subprocess.check_output('git log | head -n1 | awk \'{ print $2 }\'', shell=True).strip()
@@ -271,14 +283,12 @@ elif MODE == 'load':
                             break
 
                 if push == 'y':
-                    print '-PUSH-'
                     if subprocess.call('git push', shell=True) != 0:
                         print 'You have an un-pushed state and a simple push failed; refusing to orphan your commits'
                         finish(1)
                     checkout = 'y'
 
             if checkout == 'y':
-                print '-CHECKOUT-'
                 subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
                 subprocess.call('git fetch origin --prune', shell=True)
 
