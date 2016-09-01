@@ -1,312 +1,357 @@
-#!/bin/bash
+#!/usr/bin/python
 
-CWD=$(pwd)
+import subprocess
+import os
+import sys
 
-# --- Define Functions ---
-finish (){
-    cd $CWD
-    exit $1 
-}
+argv = sys.argv
+argc = len(argv)
 
-# Switch to root directory and ensure
-# .gitproj exists
-root=$(git rev-parse --show-toplevel)
+cwd = os.getcwd()
 
-cd $root
 
-if [ ! -s .gitproj ]; then
-    echo ".gitproj file missing. Refer to the git-project readme"
-    finish 0
-fi
-# Location of .gitproj
-GITPROJ=$(pwd)/.gitproj 
-# name of repository
-BASE=${PWD##*/} 
-# operation mode
-MODE="USAGE"
+def finish(exitcode=0):
+    os.chdir(cwd)
+    sys.exit(exitcode)
 
-darwin=false;
-case "`uname`" in
-  Darwin*) darwin=true ;;
-esac
 
-if $darwin; then
-  sedi="/usr/bin/sed -i .bak"
-else
-  sedi="sed -i"
-fi
+def usage(exitcode=0):
+    print "Usage: git project <init|save|load> [--repos <repos>]"
+    finish(exitcode)
 
-# set MODE
-case $1 in
-    init)
-        MODE="INIT"
-        ;;
-    save)
-        MODE="SAVE"
-        ;;
-    load)
-        MODE="LOAD"
-        ;;
-    status)
-        MODE="STATUS"
-        ;;
-    *)
-        ;;
-esac
 
-shift
+if argc < 2:
+    usage(1)
 
-# operation styles
-FORCE=false
-USECOMMIT=false
-AUTOCLONE=false
-AUTOMERGE=false
 
-# set flags
-while [[ $# -ge 1 ]];
-do
-    key="$1"
-    case $key in
-        -f|--force)
-            FORCE=true
-            ;;
-        -c|--commit)
-            USECOMMIT=true
-            ;;
-        -a|--autoclone)
-            AUTOCLONE=true
-            ;;
-        -m|--automerge)
-            AUTOMERGE=true
-            ;;
-        -r|--repos)
-            echo "Repos not yet implemented"
-            ;;
-        *)
-            ;;
-    esac
-    shift
-done
+root = subprocess.check_output('git rev-parse --show-toplevel', shell=True).strip()
 
-subrepos=`cat $GITPROJ | sed -n -e '/^repos:$/,/^states:$/p' | grep -v ':$'`
+os.chdir(root)
 
-if [ $MODE == INIT ]; then
+if not os.path.isfile('.gitproj'):
+    print '.gitproj file missing. Refer to the git-project readme'
+    finish(1)
 
-    while read -r line || [[ -n "$line" ]]; do
-        repo=`echo $line | awk '{print $1}'`;
-        url=`echo $line | awk '{print $2}'`;
+gitproj_location = os.path.abspath('.gitproj')
 
-        echo "cloning repo..."
-        echo "$line"
+BASE = os.path.dirname(gitproj_location).split(os.sep)[-1]
 
-        cd $repo;
-        if [ $? -ne 0 ]; then
-            echo "Cloning $repo..."
-            git clone $url $repo
-                
-            if [ $? -ne 0 ]; then
-                echo "Error cloning repo $repo"
-                finish 1
-            fi
+darwin = False
+if subprocess.check_output('uname', shell=True).strip() == 'Darwin':
+    darwin = True
 
-            echo "$repo" >> .gitignore
-        fi
+if darwin:
+    sedi = '/usr/bin/sed -i .bak'
+else:
+    sedi = 'sed -i'
 
-    done <<< "$subrepos"
+MODE = argv[1]
 
-elif [ $MODE == STATUS ] ; then
+if MODE not in ['init', 'save', 'load', 'status']:
+    usage(1)
 
-    columnExists=false
-    hash column 2>/dev/null
-    if [ $? -eq 0 ] ; then
-        columnExists=true
-    fi
 
-    output=""
-    while read -r line || [[ -n "$line" ]]; do
-        repo=`echo $line | awk '{print $1}'`;
+force = False
+autopush = False
+usecommit = False
+autoclone = False
+automerge = False
+update = False
 
-        cd $repo;
-        if [ $? -ne 0 ]; then
-            output="$output\n$repo >>>>>DOES NOT EXIST. CLONE FIRST<<<<<"
-        else
-            branch=$(git branch | grep "*" | awk '{ print $2 }')
-            commit=$(git log | head -n1 | awk '{print $2}')
-            output="$output\n$repo $branch $commit"
-        fi
-        cd - >> /dev/null
-    done <<< "$subrepos"
 
-    echo ""
-    echo "-----CURRENT STATE (to be written on 'git project save')-----"
-    echo ""
-    if $columnExists ; then
-        echo -e "$output" | column -t
-    else
-        echo -e "$output" 
-    fi
+# ------------------------------------------------------------------------
+# parse args
 
-    echo ""
+only_these = []
+flags_done = False
+args_iter = 2
+while args_iter < argc:
+    arg = argv[args_iter]
+    if flags_done:
+        only_these.append(arg)
+    elif arg == '-f' or arg == '--force':
+        force = True
+    elif arg == '-c' or arg == '--commit':
+        usecommit = True
+    elif arg == '-a' or arg == '--autoclone':
+        autoclone = True
+    elif arg == '-m' or arg == '--automerge':
+        automerge = True
+    elif arg == '-u' or arg == '--update':
+        update = True
+    elif arg == '--autopush':
+        autopush = True # for testing purposes only
+    elif arg == '--':
+        flags_done = True
+    else:
+        usage()
 
-    echo "-----SAVED STATE (currently in .gitproj)-----"
-    echo ""
+    args_iter += 1
 
-    if $columnExists ; then
-        sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$' | column -t
-    else
-        sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
-    fi
-    echo ""
+# ------------------------------------------------------------------------
+# parse .gitproj
 
-elif [ $MODE == SAVE ] ; then
+with open(gitproj_location) as f:
+    lines = [line.strip() for line in f]
 
-    if [ `git status | grep "working directory clean" | wc -l` -ne 1 ]; then
-        echo "You have uncommitted changes. Please commit these before proceeding"
-        finish 1
-    fi
+subrepos = []
+subrepo_info = {}
+parsing = 0
+for line in lines:
+    if parsing == 0 and line == 'repos:':
+        parsing = 1
+    elif parsing == 1 and line == 'states:':
+        parsing = 2
+    elif parsing == 1:
+        # parse subrepos info
+        info = line.split(' ')
+        subrepo_info[info[0]] = {'remote': info[1]}
+        subrepos.append(info[0])
+    elif parsing == 2:
+        info = line.split(' ')
+        if info[0] not in subrepo_info:
+            print('Error parsing .gitproj. Unknown repo {}'.format(info[0]))
+            finish(1)
+        subrepo_info[info[0]]['branch'] = info[1].strip()
+        subrepo_info[info[0]]['commit'] = info[2].strip()
 
-    if ! $FORCE && [ -s $GITPROJ ]; then
-        read -n 1 -p "Saved State already exists. Overwrite? [y/n/q]" overwrite < /dev/tty
-        if [ $overwrite != y ]; then
-            finish 1;
-        fi
-    fi
+# ------------------------------------------------------------------------
+# init case
 
-    echo "Saving repo state:"
-    echo $GITPROJ
+if MODE == 'init':
 
-    $sedi -e '/^states:$/,$d' $GITPROJ
+    for repo in subrepos:
+        repo_info = subrepo_info[repo]
+        url = repo_info['remote']
 
-    if [ -s .gitproj.bak ]; then
-        rm .gitproj.bak
-    fi
+        print 'cloning repo {} from {}'.format(repo, url)
 
-    echo "states:" >> $GITPROJ
+        if not os.path.exists(repo):
+            if subprocess.call('git clone {} {}'.format(url, repo), shell=True) != 0:
+                print 'Error encountered while cloning repo {}'.format(repo)
+                finish(1)
+            subprocess.call('echo "{}" >> .gitignore'.format(repo), shell=True)
+        else:
+            print 'repo already exists!'
 
-    while read -r line || [[ -n "$line" ]]; do
-        repo=`echo $line | awk '{print $1}'`
-        cd $repo;
-        branch=`git branch | grep "*" | awk '{ print $2 }'`;
-        commit=`git log | head -n1 | awk '{print $2}'`;
-        echo "    $repo $branch $commit" >> $GITPROJ
-        cd - >> /dev/null;
-    done <<< "$subrepos"
+elif MODE == 'status':
 
-#    column -t $GITPROJ
+    print 'TO BE IMPLEMENTED'
 
-    if [ `git status | grep "working directory clean" | wc -l` -eq 1 ]; then
-        echo "No changes to be saved"
-        exit 0
-    fi
+elif MODE == 'save':
 
-    git add $GITPROJ
-    if [ $? -ne 0 ]; then
-        echo "Error"
-        finish 1
-    fi
-    git commit -m "Save Sub-Repository State"
-    if [ $? -ne 0 ]; then
-        echo "Error committing $GITPROJ"
-        finish 1
-    fi
+    if subprocess.call('git status | grep "working directory clean"', shell=True) != 0:
+        print 'You have uncommitted changes. Please commit these before proceeding'
+        finish(1)
+    if not force and os.path.exists(gitproj_location):
+        char = 'a'
+        while True:
+            print 'Saved State already exists. Overwrite? [y/n/q]'
+            char = sys.stdin.read(1)
+            if char == 'q' or char == 'n':
+                finish(0)
+            elif char == 'y':
+                break
 
-elif [ $MODE == LOAD ]; then
+    if len(only_these) > 0:
+        repos_to_update = only_these
+    else:
+        repos_to_update = subrepos
 
-    if [ ! -s $GITPROJ ]; then
-        echo "No Saved State.";
-        exit -1;
-    fi
+    for repo in repos_to_update:
+        repo_info = subrepo_info[repo]
+        os.chdir(repo)
+        branch = subprocess.check_output('git branch | grep "*" | awk \'{ print $2 }\'', shell=True).strip()
+        commit = subprocess.check_output('git log | head -n1 | awk \'{ print $2 }\'', shell=True).strip()
 
-    echo "***$BASE***"
+        repo_info['branch'] = branch
+        repo_info['commit'] = commit
 
-    branch=`git branch | grep "*" | awk '{print $2}'`;
+        os.chdir(root)
 
-    git fetch origin --prune
+    with open(gitproj_location, 'w') as f:
+        # iterate through subrepos (to ensure we preserve order)
+        f.write('repos:\n')
+        for repo in subrepos:
+            f.write('\t{} {}\n'.format(repo, subrepo_info[repo]['remote']))
 
-    if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+        f.write('states:\n')
+        for repo in subrepos:
+            f.write('\t{} {} {}\n'.format(repo, subrepo_info[repo]['branch'], subrepo_info[repo]['commit']))
 
-        if $AUTOMERGE || $FORCE; then 
-            merge=y
-        else 
-            read -n 1 -p "There are new commits in $BASE:$branch. Do you want to merge them in? [y/n/q] " merge < /dev/tty
-        fi
+    if subprocess.call('git status | grep "working directory clean"', shell=True) == 0:
+        print 'No changes to be saved'
+        finish(0)
 
-        if [ $merge == y ]; then
-            git merge origin/$branch
-        elif [ $merge == q ]; then
-            finish 1
-        fi
-    else
-        echo "Your branch is up-to-date with 'origin/$branch'."
-    fi
+    if subprocess.call('git add {}'.format(gitproj_location), shell=True) != 0:
+        print 'Error'
+        finish(1)
 
-    echo ""
+    if subprocess.call('git commit -m "Save Sub-Repository State"', shell=True) != 0:
+        print 'Error committing .gitproj'
+        finish(1)
 
-    repoStates=`sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'`
+elif MODE == 'load':
 
-    while IFS='' read -r line || [[ -n "$line" ]]; do
-        repo=`echo $line | awk '{print $1}'`;
-        branch=`echo $line | awk '{print $2}'`;
-        commit=`echo $line | awk '{print $3}'`;
+    if not os.path.exists(gitproj_location):
+        print 'No Saved State to load'
+        finish(1)
 
-        cd $repo;
-        if [ $? -ne 0 ]; then
-            if $AUTOCLONE || $FORCE; then 
-                clone=y
-            else 
-                read -n 1 -p "Unknown sub-repo $repo, do you want to try to clone it? [y/n/q] "  clone </dev/tty;
-            fi
-            if [ $clone == y ]; then
-                repoUrl=$(echo "$subrepos" | grep "\s$repo\s" | awk '{print $2}')
-                echo "looking for $repo in "
-                echo "$subrepos"
-                echo "found $repoUrl"
-                git clone $repoUrl $repo -b $branch
-                if [ $? -ne 0 ]; then
-                    echo "Error cloning repo $sub"
-                    finish 1
-                fi
-            elif [ $clone == q ]; then
-                finish 1
-            else
+    print '***{}***'.format(BASE)
+
+    branch = subprocess.check_output('git branch | grep "*" | awk \'{print $2}\'', shell=True).strip()
+
+    subprocess.call('git fetch origin --prune', shell=True)
+
+    # if we are behind...
+    if subprocess.call('git status | grep "behind"', shell=True) == 0:
+        if update or automerge or force:
+            if automerge or force:
+                merge = 'y'
+            else:
+                while True:
+                    print 'There are new commits in {}:{}. Do you want to merge them in? [y/n/q] '.format(BASE, branch)
+                    merge = sys.stdin.read(1)
+                    if merge == 'q':
+                        finish(0)
+                    elif merge == 'y' or merge == 'n':
+                        break
+
+            if merge == 'y':
+                subprocess.call('git merge origin/{}'.format(branch), shell=True)
+    else:
+        print 'Your branch is up to date with origin/{}'.format(branch)
+
+    print
+
+    for repo in subrepos:
+
+        repo_info = subrepo_info[repo]
+        branch = repo_info['branch']
+        commit = repo_info['commit']
+
+        # clone repo if it doesn't exist
+        try:
+            os.chdir(repo)
+        except OSError:
+            if autoclone or force:
+                clone = 'y'
+            else:
+                while True:
+                    print 'Unknown sub-repo {}, do you want to try to clone it? [y/n/q] '.format(repo)
+                    clone = sys.stdin.read(1)
+                    if clone == 'q':
+                        finish(0)
+                    elif clone == 'y' or clone == 'n':
+                        break
+
+            if clone == 'y':
+                if repo not in subrepo_info:
+                    print 'Error: could not find url for repo {}'.format(repo)
+                    finish(1)
+                url = subrepo_info[repo]['remote']
+                branch = subrepo_info[repo]['branch']
+
+                print 'Attempting to clone {} from {}'.format(repo, url)
+                if subprocess.call('git clone {} {} -b {}'.format(url, repo, branch), shell=True) != 0:
+                    print 'Error cloning repo {}'.format(repo)
+                    finish(1)
+
+                os.chdir(repo)
+            elif clone == 'n':
                 continue
-            fi
 
-            cd $repo;
-        fi
+        print '***{}***'.format(repo)
 
-        echo "***$repo***"
-        if $USECOMMIT; then
-            git checkout $commit
-        else
-            git checkout $branch
-            git fetch origin --prune
-            if [ `git status | grep "behind" | wc -l` -ne 0 ]; then
+        if usecommit:
+            subprocess.call('git checkout {}'.format(commit), shell=True)
+        else:
+            checkout = 'y'
+            # if ahead
+            if subprocess.call('git status -sb | grep "ahead"', shell=True) == 0:
+                checkout = 'n'
+                push = 'n'
+                if autopush:
+                    push = 'y'
+                else:
+                    while True:
+                        sys.stdout.write('You have un-pushed work in {}. Attempt to push to the default remote? [y/n/q]'.format(repo))
+                        push = sys.stdin.read(1)
+                        if push == 'q':
+                            finish(0)
+                        elif push == 'y' or push == 'n':
+                            break
 
-                if $AUTOMERGE || $FORCE; then 
-                    merge=y
-                else 
-                    read -n 1 -p "There are new commits on $repo:$branch, do you want to merge them in? [y/n/q] "  merge </dev/tty
-                fi
+                if push == 'y':
+                    if subprocess.call('git push', shell=True) != 0:
+                        print 'You have an un-pushed state and a simple push failed; refusing to orphan your commits'
+                        finish(1)
+                    checkout = 'y'
 
-                if [ $merge == y ]; then
-                    git merge origin/$branch
-                elif [ $merge == q ]; then
-                    finish 1
-                fi
-            fi
-        fi
-        if [ $? -ne 0 ]; then
-            echo "Encountered an error switching branches. Please fix and re-try"
-            finish 1;
-        fi
-        echo ""
-        cd - >> /dev/null;
-    done <<< "$repoStates" 
+            if checkout == 'y':
+                subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
+                subprocess.call('git fetch origin --prune', shell=True)
 
-elif [ $MODE == USAGE ]; then
-    echo "Usage: git project <init|save|load> [--repos <repos>]"
-    finish 1
-fi
+                if subprocess.call('git status | grep "behind"', shell=True) == 0:
+                    if update or automerge or force:
+                        if automerge or force:
+                            merge = 'y'
+                        else:
+                            while True:
+                                print 'There are new commits on {}:{}, merge? [y/n/q] '.format(repo, branch)
+                                merge = sys.stdin.read(1)
+                                if merge == 'q':
+                                    finish(0)
+                                elif merge == 'y' or merge == 'n':
+                                    break
+                        if merge == 'y':
+                            subprocess.call('git merge origin/{}'.format(branch), shell=True)
 
-finish 0
+        os.chdir(root)
+
+
+finish(0)
+
+# --- old code for git project status ---
+
+#     columnExists=false
+#     hash column 2>/dev/null
+#     if [ $? -eq 0 ] ; then
+#         columnExists=true
+#     fi
+#
+#     output=""
+#     while read -r line || [[ -n "$line" ]]; do
+#         repo=`echo $line | awk '{print $1}'`;
+#
+#         cd $repo;
+#         if [ $? -ne 0 ]; then
+#             output="$output\n$repo >>>>>DOES NOT EXIST. CLONE FIRST<<<<<"
+#         else
+#             branch=$(git branch | grep "*" | awk '{ print $2 }')
+#             commit=$(git log | head -n1 | awk '{print $2}')
+#             output="$output\n$repo $branch $commit"
+#         fi
+#         cd - >> /dev/null
+#     done <<< "$subrepos"
+#
+#     echo ""
+#     echo "-----CURRENT STATE (to be written on 'git project save')-----"
+#     echo ""
+#     if $columnExists ; then
+#         echo -e "$output" | column -t
+#     else
+#         echo -e "$output"
+#     fi
+#
+#     echo ""
+#
+#     echo "-----SAVED STATE (currently in .gitproj)-----"
+#     echo ""
+#
+#     if $columnExists ; then
+#         sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$' | column -t
+#     else
+#         sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
+#     fi
+#     echo ""
