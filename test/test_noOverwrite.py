@@ -46,8 +46,15 @@ class TestNoOverwrite(unittest.TestCase):
         # add a second commit but DO NOT PUSH IT
         subprocess.call('cd local/parent/child; echo "Asdf2" > test2.txt; git add test2.txt; git commit -m "Second Commit";', shell=True)
 
-        # tell git project load to update
-        subprocess.call('cd local/parent; expect -c "spawn git project load; set timeout 10; expect -re \".*un-pushed.*\"; send \"y\"; expect eof"', shell=True)
+
+        subprocess.call('cd local/parent; git project load --autopush', shell=True)
+
+#       TODO: MAKE THIS WORK!!!
+#        expect='cd local/parent; expect -c "spawn git project load; set timeout 3; expect -re \".*un-pushed.*\"; send \"y\\n\"; expect eof"'
+#        child = pexpect.spawn('cd local/parent && git project load')
+#        child.expect('You.*')
+#        child.sendline('y\r')
+#        subprocess.call(expect, shell=True)
 
         # ensure we are now behind
         output = subprocess.check_output('cd local/parent/child; git status | grep "behind" | wc -l', shell=True)
