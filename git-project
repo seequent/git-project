@@ -80,7 +80,7 @@ while args_iter < argc:
     elif arg == '-u' or arg == '--update':
         update = True
     elif arg == '--autopush':
-        autopush = True # for testing purposes only
+        autopush = True  # for testing purposes only
     elif arg == '--':
         flags_done = True
     else:
@@ -183,13 +183,13 @@ elif MODE == 'save':
         print 'No changes to be saved'
         finish(0)
 
-    if subprocess.call('git add {}'.format(gitproj_location), shell=True) != 0:
-        print 'Error'
-        finish(1)
+#    if subprocess.call('git add {}'.format(gitproj_location), shell=True) != 0:
+#        print 'Error'
+#        finish(1)
 
-    if subprocess.call('git commit -m "Save Sub-Repository State"', shell=True) != 0:
-        print 'Error committing .gitproj'
-        finish(1)
+#    if subprocess.call('git commit -m "Save Sub-Repository State"', shell=True) != 0:
+#        print 'Error committing .gitproj'
+#        finish(1)
 
 elif MODE == 'load':
 
@@ -275,7 +275,7 @@ elif MODE == 'load':
                     push = 'y'
                 else:
                     while True:
-                        sys.stdout.write('You have un-pushed work in {}. Attempt to push to the default remote? [y/n/q]'.format(repo))
+                        print 'You have un-pushed work in {}. Attempt to push to default remote? [y/n/q]'.format(repo)
                         push = sys.stdin.read(1)
                         if push == 'q':
                             finish(0)

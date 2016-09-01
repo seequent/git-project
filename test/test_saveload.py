@@ -54,6 +54,8 @@ class TestSaveLoad(unittest.TestCase):
 
         subprocess.call('cd local/parent; git project save -f', shell=True)
 
+        subprocess.call('cd local/parent; git add .gitproj; git commit -m "Save Sub-Repository State"', shell=True)
+
 
         self.assertTrue(os.path.isfile('local/parent/.gitproj'))
 
@@ -64,6 +66,8 @@ class TestSaveLoad(unittest.TestCase):
         subprocess.call('cd local/parent; git checkout -b dev; cd child; git checkout -b dev; cd child2; git checkout -b feature', shell=True)
 
         subprocess.call('cd local/parent; git project save -f', shell=True)
+
+        subprocess.call('cd local/parent; git add .gitproj; git commit -m "Save Sub-Repository State"', shell=True)
 
 
         output = subprocess.check_output('cd local/parent; cat .gitproj | tail -n2 | awk \'{print $1, $2}\'', shell=True)
