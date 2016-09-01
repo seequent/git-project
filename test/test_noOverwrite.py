@@ -1,7 +1,6 @@
 #!bin/env python
 
 import subprocess
-import pexpect
 import os.path
 import unittest, re
 
