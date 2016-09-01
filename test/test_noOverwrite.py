@@ -30,7 +30,7 @@ class TestNoOverwrite(unittest.TestCase):
         subprocess.call('cd local/parent;  git project init', shell=True)
         subprocess.call('cd local/parent;  git add .gitignore; git commit -m ".gitignore"; git push', shell=True)
 
-    def test_safety(self):
+    def test_noOverwrite(self):
         # check to ensure the child repo was cloned
         output = subprocess.check_output('cd local/parent; ls | grep child | awk \'{print $1}\'', shell=True)
         self.assertEqual(output, 'child\n')
@@ -47,7 +47,7 @@ class TestNoOverwrite(unittest.TestCase):
         subprocess.call('cd local/parent/child; echo "Asdf2" > test2.txt; git add test2.txt; git commit -m "Second Commit";', shell=True)
 
         # tell git project load to update
-        subprocess.call('cd local/parent; expect -c "spawn git project load; set timeout 3; expect -re \".*un-pushed.*\"; send \"y\"; expect eof"', shell=True)
+        subprocess.call('cd local/parent; expect -c "spawn git project load; set timeout 10; expect -re \".*un-pushed.*\"; send \"y\"; expect eof"', shell=True)
 
         # ensure we are now behind
         output = subprocess.check_output('cd local/parent/child; git status | grep "behind" | wc -l', shell=True)
