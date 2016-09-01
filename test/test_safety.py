@@ -43,6 +43,8 @@ class TestSafety(unittest.TestCase):
         subprocess.call('cd local/parent/child; echo "Asdf" > test.txt; git add test.txt; git commit -m "Initial Commit"; git push', shell=True)
         subprocess.call('cd local/parent; git project save -f', shell=True)
 
+        subprocess.call('cd local/parent; git add .gitproj; git commit -m "Save Sub-Repository State"', shell=True)
+
         # ensure git project load DID update the child repo
         output = subprocess.check_output('cd local/parent/child; git status | grep "behind" | wc -l', shell=True)
         self.assertEqual(output.strip().replace('\n',''), '0')

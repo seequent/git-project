@@ -43,6 +43,9 @@ class TestNoOverwrite(unittest.TestCase):
         subprocess.call('cd local/parent/child; echo "Asdf" > test.txt; git add test.txt; git commit -m "Initial Commit"; git push', shell=True)
         subprocess.call('cd local/parent; git project save -f', shell=True)
 
+        subprocess.call('cd local/parent; git add .gitproj; git commit -m "Save Sub-Repository State"', shell=True)
+
+
         # add a second commit but DO NOT PUSH IT
         subprocess.call('cd local/parent/child; echo "Asdf2" > test2.txt; git add test2.txt; git commit -m "Second Commit";', shell=True)
 
