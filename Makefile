@@ -22,6 +22,7 @@ install:
 		cp $(EXE) $(SYSPATH)/; \
 		chmod +x $(SYSPATH)/$(EXE); \
 	else \
+		mkdir -p $(LOCALPATH); \
 		cp $(EXE) $(LOCALPATH)/; \
 		chmod +x $(LOCALPATH)/$(EXE); \
 	fi
