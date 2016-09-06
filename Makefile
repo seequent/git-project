@@ -14,6 +14,7 @@ help:
 	@echo '    help:       Display this message'
 	@echo '    install:    Install git-project'
 	@echo '    uninstall:  Uninstall git-project'
+	@echo '    tests:      Run automated tests'
 	@echo
 
 install:
@@ -32,3 +33,5 @@ uninstall:
 	    rm $(LOCALPATH)/$(EXE); \
 	fi
 
+tests:
+	nosetests
