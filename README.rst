@@ -55,9 +55,9 @@ To save the *state*, call :code:`git project save` (or :code:`git project save -
 This writes the current branches for all your subrepositories, as well as the latest commit on each branch, into the .gitproj file.
 You should then add and commit the .gitproj file
 
-To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. Note that this resets your branch to the commit stored in the .gitproj file. If you have unpushed changes, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
+To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. Note that this resets your subrepository branch to the commit stored in the .gitproj file. If you have unpushed changes in the subrepository, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
 
-If you want to load the exact commits from when you saved the branch (on detatched heads), use :code:`git project load --commit`.
+If you want to load the exact commits from when you saved the branch (on detached heads), use :code:`git project load --commit`.
 
 Optional parameters are:
 
