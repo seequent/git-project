@@ -264,7 +264,10 @@ elif MODE == 'load':
         print '***{}***'.format(repo)
 
         if usecommit:
-            subprocess.call('git checkout {}'.format(commit), shell=True)
+            res = subprocess.call('git checkout {}'.format(commit), shell=True)
+            if res:
+                print 'Error cloning repo {}'.format(repo)
+                finish(1)
         else:
             checkout = 'y'
             # if ahead
