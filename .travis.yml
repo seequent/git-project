@@ -21,7 +21,7 @@ before_install:
 
 # Install packages
 install:
-    sudo make install
+    make install
 
 # Run test
 script:
