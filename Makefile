@@ -18,7 +18,7 @@ help:
 	@echo
 
 install:
-	@if touch $(SYSPATH)/$(EXE); then \
+	@if touch $(SYSPATH)/$(EXE) 2>/dev/null; then \
 		cp $(EXE) $(SYSPATH)/; \
 		chmod +x $(SYSPATH)/$(EXE); \
 	else \
