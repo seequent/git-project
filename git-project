@@ -292,8 +292,8 @@ elif MODE == 'load':
                     checkout = 'y'
 
             if checkout == 'y':
-                subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
                 subprocess.call('git fetch origin --prune', shell=True)
+                subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
 
                 if subprocess.call('git status | grep "behind"', shell=True) == 0:
                     if update or automerge or force:
