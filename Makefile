@@ -3,7 +3,7 @@ SYSPATH = /usr/local/bin
 LOCALPATH = $(HOME)/git-project/bin
 EXE = git-project
 
-.PHONY: all help install uninstall test
+.PHONY: all help install uninstall tests
 
 all: help
 
