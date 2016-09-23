@@ -73,9 +73,5 @@ Optional parameters are:
 Bugs
 ----
 
-git-project is still in the very early stages of development. Use at your own risk. To report bugs or request features, please email mfirmin@3ptscience.com
-
-
-
-
-
+If you run into any problems with `git-project`, please make an
+`issue <https://github.com/3ptscience/git-project/issues>`_
