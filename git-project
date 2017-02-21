@@ -28,10 +28,10 @@ root = subprocess.check_output('git rev-parse --show-toplevel', shell=True).stri
 
 # use the cwd .gitproj if exists
 if os.path.exists(cwd+'/.gitproj'):
-    print 'Found .gitproj file in current working dir {}', cwd
+    print 'Found .gitproj file in the current working dir: ', cwd
     root = cwd
 else:
-    print 'Recursively looking for .gitproj from cwd: ', cwd
+    print 'Look for .gitproj from parent directory: ', cwd
     cwd_tmp = cwd;
     last_slash = cwd_tmp.rfind('/');
     while (last_slash != -1):
