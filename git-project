@@ -26,6 +26,11 @@ if argc < 2:
 
 root = subprocess.check_output('git rev-parse --show-toplevel', shell=True).strip()
 
+# use the cwd .gitproj if exists
+if os.path.exists(cwd+'/.gitproj'):
+    print('Found .gitproj file in current working dir {}', cwd)
+    root = cwd
+
 os.chdir(root)
 
 if not os.path.isfile('.gitproj'):
