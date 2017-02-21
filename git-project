@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import fnmatch
 import subprocess
 import os
 import sys
@@ -32,7 +31,7 @@ if os.path.exists(cwd+'/.gitproj'):
     print 'Found .gitproj file in current working dir {}', cwd
     root = cwd
 else:
-    print 'Recursively looking for .gitproj from root: ', cwd
+    print 'Recursively looking for .gitproj from cwd: ', cwd
     cwd_tmp = cwd;
     last_slash = cwd_tmp.rfind('/');
     while (last_slash != -1):
