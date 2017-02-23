@@ -9,6 +9,32 @@ argc = len(argv)
 
 cwd = os.getcwd()
 
+FLAGS = argv[2:]
+PROMPT_ENABLED = True if '--prompt' in FLAGS else False
+
+
+def flag_dec(func):
+    """flags to check function call
+
+    :func: function to be executed based on flag
+    :returns: result of the function call or handles when flag is disabled
+
+    """
+    def wrapfunc_and_call(*args, **kwargs):
+        if func.__name__ == 'prompt':
+            if PROMPT_ENABLED:
+                return func(*args, **kwargs)
+            else:
+                return 'n'
+        else:
+            return None
+    return wrapfunc_and_call
+
+
+@flag_dec
+def prompt(msg):
+    return raw_input(msg)
+
 
 def finish(exitcode=0):
     os.chdir(cwd)
@@ -24,7 +50,8 @@ if argc < 2:
     usage(1)
 
 
-root = subprocess.check_output('git rev-parse --show-toplevel', shell=True).strip()
+root = subprocess.check_output(
+    'git rev-parse --show-toplevel', shell=True).strip()
 
 os.chdir(root)
 
@@ -45,14 +72,21 @@ else:
         cwd_tmp = cwd_tmp[:last_slash]
         gitproj_tmpdir = cwd_tmp + '/.gitproj'
         if cwd_tmp.lower() == root.lower():
-            print('Hit the root of the project. Uses project root .gitproj file. Halt.')
+            print(
+                'Hit the root of the project. '
+                'Uses project root .gitproj file.')
             break
         if os.path.isfile(gitproj_tmpdir):
-            load_comfirm = raw_input('Found gitproj at ' + gitproj_tmpdir +
-                                      '\nAre you sure you want to use it(y/n)?')
+            load_comfirm = prompt(
+                'Found gitproj at ' + gitproj_tmpdir +
+                '\nAre you sure you want to use it(y/n)?'
+                )
             found_gitproj = False
             # make sure user gives either y/n
-            while ((load_comfirm != 'y' or load_comfirm != 'n') and not found_gitproj):
+            while (
+                load_comfirm != 'y' or load_comfirm != 'n'
+                ) \
+                    and not found_gitproj:
                 if load_comfirm.lower() == 'y':
                     root = cwd_tmp
                     os.chdir(root)
@@ -62,7 +96,8 @@ else:
                     print 'continue searching'
                     break
                 else:
-                    load_comfirm = raw_input(' invalid input ' + load_comfirm +
+                    load_comfirm = prompt(
+                        ' invalid input ' + load_comfirm +
                         '\n Are you sure you want to use ' + gitproj_tmpdir
                         + '(y/n)?')
             # break while loop after found gitproj
