@@ -25,7 +25,7 @@ def flag_dec(func):
             if PROMPT_ENABLED:
                 return func(*args, **kwargs)
             else:
-                return 'n'
+                return ''  # use empty string to indicate default
         else:
             return None
     return wrapfunc_and_call
@@ -74,7 +74,7 @@ else:
         if cwd_tmp.lower() == root.lower():
             print(
                 'Hit the root of the project. '
-                'Uses project root .gitproj file.')
+                '\nUses project root .gitproj file: ', cwd_tmp)
             break
         if os.path.isfile(gitproj_tmpdir):
             load_confirm = prompt(
@@ -83,13 +83,12 @@ else:
                 )
             found_gitproj = False
             # make sure user gives either y/n
-            while (
-                load_confirm != 'y' or load_confirm != 'n'
-                ) \
-                    and not found_gitproj:
-                if load_confirm.lower() == 'y':
+            while not found_gitproj:
+                if load_confirm.lower() == 'y' or load_confirm == '':
                     root = cwd_tmp
                     os.chdir(root)
+                    print 'using .gitproj found at: ' \
+                        '\n\t{}'.format(gitproj_tmpdir)
                     found_gitproj = True
                     break
                 elif load_confirm.lower() == 'n':
