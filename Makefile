@@ -1,7 +1,11 @@
 
-.PHONY: all help install uninstall test
+SYSPATH = /usr/local/bin
+LOCALPATH = $(HOME)/git-project/bin
+EXE = git-project
 
-all: help 
+.PHONY: all help install uninstall tests
+
+all: help
 
 help:
 	@echo 'Usage: make COMMAND'
@@ -10,16 +14,25 @@ help:
 	@echo '    help:       Display this message'
 	@echo '    install:    Install git-project'
 	@echo '    uninstall:  Uninstall git-project'
+	@echo '    tests:      Run automated tests'
 	@echo
 
-install: 
-	@chmod 755 git-project
-	cp git-project /usr/local/bin
-
-install-local:
-	@mkdir -p ~/git-project/bin
-	cp git-project ~/git-project/bin
+install:
+	@if touch $(SYSPATH)/$(EXE) 2>/dev/null; then \
+		cp $(EXE) $(SYSPATH)/; \
+		chmod +x $(SYSPATH)/$(EXE); \
+	else \
+		mkdir -p $(LOCALPATH); \
+		cp $(EXE) $(LOCALPATH)/; \
+		chmod +x $(LOCALPATH)/$(EXE); \
+	fi
 
 uninstall:
-	rm /usr/local/bin/git-project
+	@if touch $(SYSPATH)/$(EXE); then \
+		rm $(SYSPATH)/$(EXE); \
+	else \
+	    rm $(LOCALPATH)/$(EXE); \
+	fi
 
+tests:
+	nosetests

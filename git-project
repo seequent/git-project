@@ -9,6 +9,32 @@ argc = len(argv)
 
 cwd = os.getcwd()
 
+FLAGS = argv[2:]
+PROMPT_ENABLED = True if '--prompt' in FLAGS else False
+
+
+def flag_dec(func):
+    """flags to check function call
+
+    :func: function to be executed based on flag
+    :returns: result of the function call or handles when flag is disabled
+
+    """
+    def wrapfunc_and_call(*args, **kwargs):
+        if func.__name__ == 'prompt':
+            if PROMPT_ENABLED:
+                return func(*args, **kwargs)
+            else:
+                return ''  # use empty string to indicate default
+        else:
+            return None
+    return wrapfunc_and_call
+
+
+@flag_dec
+def prompt(msg):
+    return raw_input(msg)
+
 
 def finish(exitcode=0):
     os.chdir(cwd)
@@ -24,13 +50,59 @@ if argc < 2:
     usage(1)
 
 
-root = subprocess.check_output('git rev-parse --show-toplevel', shell=True).strip()
+root = subprocess.check_output(
+    'git rev-parse --show-toplevel', shell=True).strip()
 
 os.chdir(root)
 
 if not os.path.isfile('.gitproj'):
     print '.gitproj file missing. Refer to the git-project readme'
     finish(1)
+
+# use the cwd .gitproj if exists
+if os.path.exists(cwd+'/.gitproj'):
+    # if there is a gitproj at cwd use it
+    root = cwd
+    os.chdir(root)
+else:
+    # look for .gitproj in the parent dir, ask for confirmation if found
+    cwd_tmp = cwd
+    last_slash = cwd_tmp.rfind('/')
+    while (last_slash != -1):
+        cwd_tmp = cwd_tmp[:last_slash]
+        gitproj_tmpdir = cwd_tmp + '/.gitproj'
+        if cwd_tmp.lower() == root.lower():
+            print(
+                'Hit the root of the project. '
+                '\nUses project root .gitproj file: ', cwd_tmp)
+            break
+        if os.path.isfile(gitproj_tmpdir):
+            load_confirm = prompt(
+                'Found gitproj at ' + gitproj_tmpdir +
+                '\nAre you sure you want to use it(y/n)?'
+                )
+            found_gitproj = False
+            # make sure user gives either y/n
+            while not found_gitproj:
+                if load_confirm.lower() == 'y' or load_confirm == '':
+                    root = cwd_tmp
+                    os.chdir(root)
+                    print 'using .gitproj found at: ' \
+                        '\n\t{}'.format(gitproj_tmpdir)
+                    found_gitproj = True
+                    break
+                elif load_confirm.lower() == 'n':
+                    print 'continue searching'
+                    break
+                else:
+                    load_confirm = prompt(
+                        ' invalid input ' + load_confirm +
+                        '\n Are you sure you want to use ' + gitproj_tmpdir
+                        + '(y/n)?')
+            # break while loop after found gitproj
+            if found_gitproj:
+                break
+        last_slash = cwd_tmp.rfind('/')
 
 gitproj_location = os.path.abspath('.gitproj')
 
@@ -265,7 +337,10 @@ elif MODE == 'load':
         print '***{}***'.format(repo)
 
         if usecommit:
-            subprocess.call('git checkout {}'.format(commit), shell=True)
+            res = subprocess.call('git checkout {}'.format(commit), shell=True)
+            if res:
+                print 'Error cloning repo {}'.format(repo)
+                finish(1)
         else:
             checkout = 'y'
             # if ahead
@@ -290,8 +365,8 @@ elif MODE == 'load':
                     checkout = 'y'
 
             if checkout == 'y':
-                subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
                 subprocess.call('git fetch origin --prune', shell=True)
+                subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
 
                 if subprocess.call('git status | grep "behind"', shell=True) == 0:
                     if update or automerge or force:

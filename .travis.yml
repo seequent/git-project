@@ -2,7 +2,7 @@ language: python
 python:
   - 2.7
 
-sudo: true
+sudo: false
 
 cache:
   timeout: 3600
@@ -18,10 +18,12 @@ before_install:
     - git config --global user.email "test@test.com"
     - git config --global user.name "test"
     - git config --global push.default simple
+    - export PATH=/home/travis/miniconda/bin:/home/travis/git-project/bin:$PATH
+
 
 # Install packages
 install:
-    sudo make install
+    make install
 
 # Run test
 script:
