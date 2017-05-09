@@ -140,7 +140,8 @@ elif MODE == 'status':
 
 elif MODE == 'save':
 
-    if subprocess.call('git status | grep "working directory clean"', shell=True) != 0:
+    if subprocess.call('git status | grep "working tree clean"', shell=True) != 0 or \
+            subprocess.call('git status | grep "working directory clean"', shell=True) != 0:
         print 'You have uncommitted changes. Please commit these before proceeding'
         finish(1)
     if not force and os.path.exists(gitproj_location):
