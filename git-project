@@ -188,6 +188,52 @@ for line in lines:
         subrepo_info[info[0]]['commit'] = info[2].strip()
 
 # ------------------------------------------------------------------------
+# check for outdated repo links
+
+target_changes = False
+for repo in subrepos:
+    res = subprocess.check_output(
+        'cd {dir} && git remote -v'.format(dir=repo),
+        shell=True,
+    )
+    name, remote, action = next(
+        (line.split() for line in res.split('\n') if line and line.split()[0] == 'origin')
+    )
+    if subrepo_info[repo]['remote'] != remote:
+        subrepo_info[repo]['current_remote'] = remote
+        target_changes = True
+
+if target_changes:
+    print 'Some repository targets have changed:'
+    for repo in subrepos:
+        if 'current_remote' in subrepo_info[repo]:
+            print '{repo}: {current} --> {new}'.format(
+                repo=repo,
+                current=subrepo_info[repo]['current_remote'],
+                new=subrepo_info[repo]['remote'],
+            )
+
+    print 'Would you like to update to the new targets? [y/n/q] '
+    update = sys.stdin.read(1)
+    if update == 'q':
+        finish(0)
+    elif update == 'y':
+        for repo in subrepos:
+            if 'current_remote' in subrepo_info[repo]:
+                print '\t{}...'.format(repo)
+                if subprocess.call(
+                    'cd {} && git remote set-url origin {}'.format(
+                        repo,
+                        subrepo_info[repo]['remote'],
+                    ),
+                    shell=True,
+                ) != 0:
+                    print('Something went wrong changing the remote for {}!'.format(repo))
+                    finish(0)
+                subrepo_info[repo].pop('current_remote')
+    print()
+
+# ------------------------------------------------------------------------
 # init case
 
 if MODE == 'init':
