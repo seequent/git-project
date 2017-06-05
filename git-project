@@ -251,7 +251,7 @@ elif MODE == 'retarget':
                         print('Something went wrong changing the remote for {}!'.format(repo))
                         finish(0)
                     subrepo_info[repo].pop('current_remote')
-        print()
+        print
 
     else:
         print 'There are no repositories that need to be re-targeted'
