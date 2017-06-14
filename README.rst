@@ -1,8 +1,8 @@
 git-project
 ***********
 
-.. image:: https://travis-ci.org/3ptscience/git-project.svg?branch=master&branch=master
-    :target: https://travis-ci.org/3ptscience/git-project
+.. image:: https://travis-ci.org/aranzgeo/git-project.svg?branch=master&branch=master
+    :target: https://travis-ci.org/aranzgeo/git-project
 
 Scripts extending git for better project and sub-repository management
 
@@ -74,4 +74,4 @@ Bugs
 ----
 
 If you run into any problems with `git-project`, please make an
-`issue <https://github.com/3ptscience/git-project/issues>`_
+`issue <https://github.com/aranzgeo/git-project/issues>`_
