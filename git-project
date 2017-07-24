@@ -12,7 +12,7 @@ cwd = os.getcwd()
 FLAGS = argv[2:]
 PROMPT_ENABLED = True if '--prompt' in FLAGS else False
 
-CURRENT_VERSION = '1.0.0'
+CURRENT_VERSION = '0.1.0'
 
 using_version = '0.0.0'
 

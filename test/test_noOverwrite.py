@@ -22,7 +22,7 @@ class TestNoOverwrite(unittest.TestCase):
         subprocess.call('cd local;  git clone ../remote/child', shell=True)
 
         # initialize the git-project for local/parent
-        subprocess.call('cd local/parent;  echo "version: 1.0.0" >> .gitproj', shell=True)
+        subprocess.call('cd local/parent;  echo "version: 0.1.0" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "repos:" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "\tc child ../../remote/child" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  git add .gitproj; git commit -m "Initial Commit"; git push -u origin master', shell=True)

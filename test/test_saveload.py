@@ -21,7 +21,7 @@ class TestSaveLoad(unittest.TestCase):
         subprocess.call('cd local;  git clone ../remote/child', shell=True)
         subprocess.call('cd local;  git clone ../remote/child2', shell=True)
 
-        subprocess.call('cd local/parent;  echo "version: 1.0.0" >> .gitproj', shell=True)
+        subprocess.call('cd local/parent;  echo "version: 0.1.0" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "repos:" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "\tc child ../../remote/child" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "\tc2 child/child2 ../../remote/child2" >> .gitproj', shell=True)
