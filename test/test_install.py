@@ -2,7 +2,7 @@
 
 import subprocess
 import os.path
-import unittest, re
+import unittest
 
 
 class TestInstall(unittest.TestCase):

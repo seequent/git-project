@@ -12,6 +12,10 @@ cwd = os.getcwd()
 FLAGS = argv[2:]
 PROMPT_ENABLED = True if '--prompt' in FLAGS else False
 
+CURRENT_VERSION = '1.0.0'
+
+using_version = '0.0.0'
+
 
 def flag_dec(func):
     """flags to check function call
@@ -44,6 +48,34 @@ def finish(exitcode=0):
 def usage(exitcode=0):
     print "Usage: git project <init|save|load> [--repos <repos>]"
     finish(exitcode)
+
+
+def check_version(v1):
+    version_diff = 0
+
+    v1_arr = v1.split('.')
+    v2_arr = CURRENT_VERSION.split('.')
+
+    if v1_arr[0] > v2_arr[0]:
+        version_diff = 1
+    elif v1_arr[0] < v2_arr[0]:
+        version_diff = -1
+    elif v1_arr[1] > v2_arr[1]:
+        version_diff = 1
+    elif v1_arr[1] < v2_arr[1]:
+        version_diff = -1
+    elif v1_arr[2] > v2_arr[2]:
+        version_diff = 1
+    elif v1_arr[2] < v2_arr[2]:
+        version_diff = -1
+
+    if version_diff < 0:
+        print '.gitproj uses older version of git-project. Consider upgrading.'
+    elif version_diff > 0:
+        print 'git-project install is out of date. .gitproj version: {}, git-project version: {}. Aborting'.format(using_version, CURRENT_VERSION)
+        finish(1)
+    else:
+        print 'Using .gitproj {}'.format(CURRENT_VERSION)
 
 
 if argc < 2:
@@ -169,23 +201,49 @@ with open(gitproj_location) as f:
 subrepos = []
 subrepo_info = {}
 parsing = 0
+firstline = True
 for line in lines:
-    if parsing == 0 and line == 'repos:':
+    splitline = line.split(' ')
+    if parsing == 0 and splitline[0] == 'version:':
+        using_version = splitline[1]
+        check_version(using_version)
+    elif parsing == 0 and line == 'repos:':
         parsing = 1
+        if firstline:
+            using_version = '0.0.0'
+            check_version(using_version)
     elif parsing == 1 and line == 'states:':
         parsing = 2
     elif parsing == 1:
         # parse subrepos info
         info = line.split(' ')
-        subrepo_info[info[0]] = {'remote': info[1]}
-        subrepos.append(info[0])
+        if using_version == '0.0.0':
+            repo = info[0]
+            local = repo
+            remote = info[1]
+        else:
+            repo = info[0]
+            local = info[1]
+            remote = info[2]
+
+        subrepo_info[repo] = {
+            'local': local,
+            'remote': remote
+        }
+        subrepos.append(repo)
     elif parsing == 2:
         info = line.split(' ')
-        if info[0] not in subrepo_info:
+        repo = info[0]
+        branch = info[1]
+        commit = info[2]
+        if repo not in subrepo_info:
             print('Error parsing .gitproj. Unknown repo {}'.format(info[0]))
             finish(1)
-        subrepo_info[info[0]]['branch'] = info[1].strip()
-        subrepo_info[info[0]]['commit'] = info[2].strip()
+        subrepo_info[repo]['branch'] = branch.strip()
+        subrepo_info[repo]['commit'] = commit.strip()
+
+    firstline = False
+
 
 # ------------------------------------------------------------------------
 # init case
@@ -194,21 +252,28 @@ if MODE == 'init':
 
     for repo in subrepos:
         repo_info = subrepo_info[repo]
+        local = repo_info['local']
         url = repo_info['remote']
 
         print 'cloning repo {} from {}'.format(repo, url)
 
         if not os.path.exists(repo):
-            if subprocess.call('git clone {} {}'.format(url, repo), shell=True) != 0:
-                print 'Error encountered while cloning repo {}'.format(repo)
+            result = subprocess.call(
+                'git clone {} {}'.format(url, local),
+                shell=True)
+            if result != 0:
+                print 'Error cloning repository {}'.format(repo)
                 finish(1)
-            subprocess.call('echo "{}" >> .gitignore'.format(repo), shell=True)
+            subprocess.call(
+                'echo "{}" >> .gitignore'.format(local),
+                shell=True
+            )
         else:
             print 'repo already exists!'
 
 elif MODE == 'status':
 
-    print 'TO BE IMPLEMENTED'
+    print 'TO BE IMPLEMENTED. Use "cat .gitproj" instead.'
 
 elif MODE == 'save':
 
@@ -233,9 +298,16 @@ elif MODE == 'save':
 
     for repo in repos_to_update:
         repo_info = subrepo_info[repo]
-        os.chdir(repo)
-        branch = subprocess.check_output('git branch | grep "*" | awk \'{ print $2 }\'', shell=True).strip()
-        commit = subprocess.check_output('git log | head -n1 | awk \'{ print $2 }\'', shell=True).strip()
+        local = repo_info['local']
+        os.chdir(local)
+        branch = subprocess.check_output(
+            'git branch | grep "*" | awk \'{ print $2 }\'',
+            shell=True
+        ).strip()
+        commit = subprocess.check_output(
+            'git log | head -n1 | awk \'{ print $2 }\'',
+            shell=True
+        ).strip()
 
         repo_info['branch'] = branch
         repo_info['commit'] = commit
@@ -244,9 +316,13 @@ elif MODE == 'save':
 
     with open(gitproj_location, 'w') as f:
         # iterate through subrepos (to ensure we preserve order)
+        f.write('version: {}\n'.format(using_version))
         f.write('repos:\n')
         for repo in subrepos:
-            f.write('\t{} {}\n'.format(repo, subrepo_info[repo]['remote']))
+            repo_info = subrepo_info[repo]
+            local = repo_info['local']
+            remote = repo_info['remote']
+            f.write('\t{} {} {}\n'.format(repo, local, remote))
 
         f.write('states:\n')
         for repo in subrepos:
@@ -271,7 +347,7 @@ elif MODE == 'load':
         print 'No Saved State to load'
         finish(1)
 
-    print '***{}***'.format(BASE)
+    print '\n\n***Loading {}***\n\n'.format(BASE)
 
     branch = subprocess.check_output('git branch | grep "*" | awk \'{print $2}\'', shell=True).strip()
 
@@ -301,18 +377,19 @@ elif MODE == 'load':
     for repo in subrepos:
 
         repo_info = subrepo_info[repo]
+        local = repo_info['local']
         branch = repo_info['branch']
         commit = repo_info['commit']
 
         # clone repo if it doesn't exist
         try:
-            os.chdir(repo)
+            os.chdir(local)
         except OSError:
             if autoclone or force:
                 clone = 'y'
             else:
                 while True:
-                    print 'Unknown sub-repo {}, do you want to try to clone it? [y/n/q] '.format(repo)
+                    print 'Unknown sub-repo {}, do you want to try to clone it? [y/n/q] '.format(local)
                     clone = sys.stdin.read(1)
                     if clone == 'q':
                         finish(0)
@@ -331,11 +408,11 @@ elif MODE == 'load':
                     print 'Error cloning repo {}'.format(repo)
                     finish(1)
 
-                os.chdir(repo)
+                os.chdir(local)
             elif clone == 'n':
                 continue
 
-        print '***{}***'.format(repo)
+        print '\n\n***Loading {}***\n\n'.format(repo)
 
         if usecommit:
             res = subprocess.call('git checkout {}'.format(commit), shell=True)
@@ -388,47 +465,3 @@ elif MODE == 'load':
 
 
 finish(0)
-
-# --- old code for git project status ---
-
-#     columnExists=false
-#     hash column 2>/dev/null
-#     if [ $? -eq 0 ] ; then
-#         columnExists=true
-#     fi
-#
-#     output=""
-#     while read -r line || [[ -n "$line" ]]; do
-#         repo=`echo $line | awk '{print $1}'`;
-#
-#         cd $repo;
-#         if [ $? -ne 0 ]; then
-#             output="$output\n$repo >>>>>DOES NOT EXIST. CLONE FIRST<<<<<"
-#         else
-#             branch=$(git branch | grep "*" | awk '{ print $2 }')
-#             commit=$(git log | head -n1 | awk '{print $2}')
-#             output="$output\n$repo $branch $commit"
-#         fi
-#         cd - >> /dev/null
-#     done <<< "$subrepos"
-#
-#     echo ""
-#     echo "-----CURRENT STATE (to be written on 'git project save')-----"
-#     echo ""
-#     if $columnExists ; then
-#         echo -e "$output" | column -t
-#     else
-#         echo -e "$output"
-#     fi
-#
-#     echo ""
-#
-#     echo "-----SAVED STATE (currently in .gitproj)-----"
-#     echo ""
-#
-#     if $columnExists ; then
-#         sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$' | column -t
-#     else
-#         sed -n -e '/^states:$/,$p' $GITPROJ | grep -v ':$'
-#     fi
-#     echo ""
