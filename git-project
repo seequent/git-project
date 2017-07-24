@@ -405,7 +405,7 @@ elif MODE == 'load':
                 branch = subrepo_info[repo]['branch']
 
                 print 'Attempting to clone {} from {}'.format(repo, url)
-                if subprocess.call('git clone {} {} -b {}'.format(url, repo, branch), shell=True) != 0:
+                if subprocess.call('git clone {} {} -b {}'.format(url, local, branch), shell=True) != 0:
                     print 'Error cloning repo {}'.format(repo)
                     finish(1)
 
