@@ -70,7 +70,7 @@ def check_version(v1):
         version_diff = -1
 
     if version_diff < 0:
-        print '.gitproj uses older version of git-project. Consider upgrading.'
+        print '\n WARNING: .gitproj uses older version of git-project. Consider upgrading.'
     elif version_diff > 0:
         print 'git-project install is out of date. .gitproj version: {}, git-project version: {}. Aborting'.format(using_version, CURRENT_VERSION)
         finish(1)
