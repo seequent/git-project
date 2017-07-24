@@ -285,7 +285,7 @@ elif MODE == 'save':
         char = 'a'
         while True:
             print 'Saved State already exists. Overwrite? [y/n/q]'
-            char = sys.stdin.read(1)
+            char = sys.stdin.readline().strip()
             if char == 'q' or char == 'n':
                 finish(0)
             elif char == 'y':
@@ -361,7 +361,7 @@ elif MODE == 'load':
             else:
                 while True:
                     print 'There are new commits in {}:{}. Do you want to merge them in? [y/n/q] '.format(BASE, branch)
-                    merge = sys.stdin.read(1)
+                    merge = sys.stdin.readline().strip()
                     if merge == 'q':
                         finish(0)
                     elif merge == 'y' or merge == 'n':
@@ -389,8 +389,9 @@ elif MODE == 'load':
                 clone = 'y'
             else:
                 while True:
-                    print 'Unknown sub-repo {}, do you want to try to clone it? [y/n/q] '.format(local)
-                    clone = sys.stdin.read(1)
+                    print '\n\nUnknown sub-repo {}, do you want to try to clone it? [y/n/q] '.format(local)
+                    clone = sys.stdin.readline().strip()
+
                     if clone == 'q':
                         finish(0)
                     elif clone == 'y' or clone == 'n':
@@ -430,7 +431,7 @@ elif MODE == 'load':
                 else:
                     while True:
                         print 'You have un-pushed work in {}. Attempt to push to default remote? [y/n/q]'.format(repo)
-                        push = sys.stdin.read(1)
+                        push = sys.stdin.readline().strip()
                         if push == 'q':
                             finish(0)
                         elif push == 'y' or push == 'n':
@@ -453,7 +454,7 @@ elif MODE == 'load':
                         else:
                             while True:
                                 print 'There are new commits on {}:{}, merge? [y/n/q] '.format(repo, branch)
-                                merge = sys.stdin.read(1)
+                                merge = sys.stdin.readline().strip()
                                 if merge == 'q':
                                     finish(0)
                                 elif merge == 'y' or merge == 'n':
