@@ -34,21 +34,22 @@ Setup
 
 1. Create a .gitproj file with the format
 
-::
+    ::
 
-    repos:
-        subrepo1-name local/path/to/repo1 remote-url-subrepo1
-        subrepo2-name local/path/to/repo2 remote-url-subrepo2
+        repos:
+            subrepo1-name local/path/to/repo1 remote-url-subrepo1
+            subrepo2-name local/path/to/repo2 remote-url-subrepo2
 
-The first column (subrepo-name) is a memorable key for each repository that you will use when saving or loading that repo (see below)
-The second column is the local directory where you would like to store each repository (relative to the .gitproj file)
-The final column is the remote url from which to clone the repository.
+    The first column (subrepo-name) is a memorable key for each repository that you will use when saving or loading that repo (see below).
 
-2. Run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories
-and add them to your .gitignore. 
+    The second column is the local directory where you would like to store each repository (relative to the .gitproj file).
 
-.. note::
-If you have already cloned the sub-repositories, skip the :code:`git project init` step, but make sure the sub-repositories are listed in your .gitignore.
+    The final column is the remote url from which to clone the repository.
+
+2. Run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories and add them to your .gitignore. 
+
+    .. note::
+        If you have already cloned the sub-repositories, skip the :code:`git project init` step, but make sure the sub-repositories are listed in your .gitignore.
 
 
 Usage
