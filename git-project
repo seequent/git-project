@@ -82,6 +82,29 @@ if argc < 2:
     usage(1)
 
 
+darwin = False
+if subprocess.check_output('uname', shell=True).strip() == 'Darwin':
+    darwin = True
+
+if darwin:
+    sedi = '/usr/bin/sed -i .bak'
+else:
+    sedi = 'sed -i'
+
+# --- Determine Mode ---
+
+MODE = argv[1]
+
+if MODE not in ['init', 'save', 'load', 'status', 'version']:
+    usage(1)
+
+if MODE == 'version':
+    print CURRENT_VERSION
+    finish(0)
+
+
+# --- Find .gitproj ---
+
 root = subprocess.check_output(
     'git rev-parse --show-toplevel', shell=True).strip()
 
@@ -139,21 +162,6 @@ else:
 gitproj_location = os.path.abspath('.gitproj')
 
 BASE = os.path.dirname(gitproj_location).split(os.sep)[-1]
-
-darwin = False
-if subprocess.check_output('uname', shell=True).strip() == 'Darwin':
-    darwin = True
-
-if darwin:
-    sedi = '/usr/bin/sed -i .bak'
-else:
-    sedi = 'sed -i'
-
-MODE = argv[1]
-
-if MODE not in ['init', 'save', 'load', 'status']:
-    usage(1)
-
 
 force = False
 autopush = False
