@@ -32,17 +32,19 @@ To uninstall, simply run :code:`make uninstall`
 Setup
 -----
 
-To setup, first create a .gitproj file with the format
+1. Create a .gitproj file with the format
 
 ::
 
     repos:
-        sub-repo-name sub-repo-url
-        sub-repo2-name sub-repo2-url
+        subrepo1-name local/path/to/repo1 remote-url-subrepo1
+        subrepo2-name local/path/to/repo2 remote-url-subrepo2
 
-Then run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories
-and add them to your .gitignore. If you have already cloned the sub-repositories, skip this step, but make sure
-the sub-repositories are listed in your .gitignore.
+2. Run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories
+and add them to your .gitignore. 
+
+.. note::
+    If you have already cloned the sub-repositories, skip running :code:`git project init`, but make sure the sub-repositories are listed in your .gitignore.
 
 
 Usage
@@ -51,13 +53,24 @@ Usage
 git-project saves the *state* of your repository and subrepositories. A *state* is the collection of feature branches for
 each repository.
 
-To save the *state*, call :code:`git project save` (or :code:`git project save -- repo1 repo2 ...` to save only given repos)
-This writes the current branches for all your subrepositories, as well as the latest commit on each branch, into the .gitproj file.
-You should then add and commit the .gitproj file
+To save the *state*, call :code:`git project save` to save the current state of all subrepositories 
 
-To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. Note that this resets your subrepository branch to the commit stored in the .gitproj file. If you have unpushed changes in the subrepository, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
+.. tip:: 
+    To save only certain specified repositories, use :code:`git project save -- repo1 repo2 ...` 
 
-If you want to load the exact commits from when you saved the branch (on detached heads), use :code:`git project load --commit`.
+This writes the current branch as well as the latest commit on that branch for each subrepository, into the .gitproj file.
+You should then add and commit the .gitproj file like normal: :code:`git add .gitproj && git commit -m "Update gitproj"`
+
+To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. 
+
+.. warning::
+    This resets your subrepository's local branch to the commit stored in the .gitproj file. If you have unpushed changes in the subrepository, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
+
+.. tip::
+    If you want to load the exact commits on detached heads rather than resetting your local branch, use :code:`git project load --commit`.
+
+.. tip::
+    Similar to saving, you can load only specific repositories with :code:`git project load -- repo1 repo2`
 
 Optional parameters are:
 
