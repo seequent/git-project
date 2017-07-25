@@ -17,8 +17,8 @@ are rapidly changing. This differs from existing solutions such as git sub-modul
 best when sub-repositories are mostly stable.
 
 git-project keeps track of which branches you should be on in all your repositories when you are working
-on a given feature. So, if you're working on feature X on a given branch in your main repository, which depends
-on branch Y in sub-repo A and branch X in sub-repo B, git-project keeps track of that for you! Then, if you want
+on a given feature. So, if you're working on :code:`feature X` on a given branch in your main repository, which depends
+on :code:`branch Y` in :code:`sub-repo A` and :code:`branch X` in :code:`sub-repo B`, git-project keeps track of that for you! Then, if you want
 to stop and work on a different feature that depends on an entirely different set of branches, you can switch to it
 with a single command.
 
