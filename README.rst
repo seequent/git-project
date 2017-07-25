@@ -59,8 +59,11 @@ Setup
 Usage
 *****
 
-git-project saves the *state* of your repository and subrepositories. A *state* is the collection of feature branches for
+git-project is used to save and load the *state* of your repository and subrepositories. A *state* is the collection of feature branches for
 each repository.
+
+Saving
+======
 
 To save the *state*, call :code:`git project save` to save the current state of all subrepositories 
 
@@ -68,6 +71,9 @@ To save only certain specified repositories, use :code:`git project save -- repo
 
 This writes the current branch as well as the latest commit on that branch for each subrepository, into the .gitproj file.
 You should then add and commit the .gitproj file like normal: :code:`git add .gitproj && git commit -m "Update gitproj"`
+
+Loading
+=======
 
 To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. 
 
@@ -79,6 +85,10 @@ To return to this *state* later, just switch to the branch in your base reposito
 
 .. tip::
     Similar to saving, you can load only specific repositories with :code:`git project load -- repo1-name repo2-name`
+
+
+Other
+=====
 
 Optional parameters are:
 
