@@ -99,7 +99,7 @@ Similar to saving, you can load only specific repositories with
 Other
 =====
 
-Optional parameters are:
+Optional flags you can pass to :code:`git project` include:
 
 :code:`--autoclone (-a)`: Autoclone repos in .gitproj that aren't in the directory
 
