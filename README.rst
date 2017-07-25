@@ -70,21 +70,20 @@ To save the *state*, call :code:`git project save` to save the current state of 
 To save only certain specified repositories, use :code:`git project save -- repo1-name repo2-name ...` 
 
 This writes the current branch as well as the latest commit on that branch for each subrepository, into the .gitproj file.
-You should then add and commit the .gitproj file like normal: :code:`git add .gitproj && git commit -m "Update gitproj"`
+You should then add and commit the .gitproj file like normal:
+
+    :code:`git add .gitproj && git commit -m "Update gitproj"`
 
 Loading
 =======
 
 To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run :code:`git project load`. 
 
-.. warning::
-    This resets your subrepository's local branch to the commit stored in the .gitproj file. If you have unpushed changes in the subrepository, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
+This resets your subrepository's local branch to the commit stored in the .gitproj file. If you have unpushed changes in the subrepository, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
 
-.. tip::
-    If you want to load the exact commits on detached heads rather than resetting your local branch, use :code:`git project load --commit`.
+If you want to load the exact commits on detached heads rather than resetting your local branch, use :code:`git project load --commit`.
 
-.. tip::
-    Similar to saving, you can load only specific repositories with :code:`git project load -- repo1-name repo2-name`
+Similar to saving, you can load only specific repositories with :code:`git project load -- repo1-name repo2-name`
 
 
 Other
@@ -92,13 +91,12 @@ Other
 
 Optional parameters are:
 
-::
+:code:`--autoclone (-a)`: Autoclone repos in .gitproj that aren't in the directory
 
-    --autoclone (-a): Autoclone repos in .gitproj that aren't in the directory
-    --automerge (-m): Automerge branch updates when loading
-    --force (-f): don't prompt, will automatically merge or clone when loading, and overwrite .gitproj when saving
-    --update (-u): when loading, will update all branches to the most recent commit on the saved branch (rather than the saved commit).
-    -- : when saving, separates flags from the list of repos to save. If not specified, all repos will be saved
+:code:`--automerge (-m)`: Automerge branch updates when loading
+:code:`--force (-f)`: don't prompt, will automatically merge or clone when loading, and overwrite .gitproj when saving
+:code:`--update (-u)`: when loading, will update all branches to the most recent commit on the saved branch (rather than the saved commit).
+:code:`--`: separates flags from the list of repos to save/load. If not specified, all repos will be saved/loaded
 
 
 ****
