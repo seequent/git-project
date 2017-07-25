@@ -40,11 +40,15 @@ Setup
         subrepo1-name local/path/to/repo1 remote-url-subrepo1
         subrepo2-name local/path/to/repo2 remote-url-subrepo2
 
+The first column (subrepo-name) is a memorable key for each repository that you will use when saving or loading that repo (see below)
+The second column is the local directory where you would like to store each repository (relative to the .gitproj file)
+The final column is the remote url from which to clone the repository.
+
 2. Run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories
 and add them to your .gitignore. 
 
 .. note::
-    If you have already cloned the sub-repositories, skip running :code:`git project init`, but make sure the sub-repositories are listed in your .gitignore.
+If you have already cloned the sub-repositories, skip the :code:`git project init` step, but make sure the sub-repositories are listed in your .gitignore.
 
 
 Usage
@@ -56,7 +60,7 @@ each repository.
 To save the *state*, call :code:`git project save` to save the current state of all subrepositories 
 
 .. tip:: 
-    To save only certain specified repositories, use :code:`git project save -- repo1 repo2 ...` 
+    To save only certain specified repositories, use :code:`git project save -- repo1-name repo2-name ...` 
 
 This writes the current branch as well as the latest commit on that branch for each subrepository, into the .gitproj file.
 You should then add and commit the .gitproj file like normal: :code:`git add .gitproj && git commit -m "Update gitproj"`
@@ -70,7 +74,7 @@ To return to this *state* later, just switch to the branch in your base reposito
     If you want to load the exact commits on detached heads rather than resetting your local branch, use :code:`git project load --commit`.
 
 .. tip::
-    Similar to saving, you can load only specific repositories with :code:`git project load -- repo1 repo2`
+    Similar to saving, you can load only specific repositories with :code:`git project load -- repo1-name repo2-name`
 
 Optional parameters are:
 
