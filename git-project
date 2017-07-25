@@ -46,7 +46,7 @@ def finish(exitcode=0):
 
 
 def usage(exitcode=0):
-    print "Usage: git project <init|save|load> [--repos <repos>]"
+    print "Usage: git project <init|save|load|version> [-- <subrepos>]"
     finish(exitcode)
 
 
