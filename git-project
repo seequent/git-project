@@ -324,13 +324,17 @@ elif MODE == 'save':
 
     with open(gitproj_location, 'w') as f:
         # iterate through subrepos (to ensure we preserve order)
-        f.write('version: {}\n'.format(using_version))
+        if using_version != '0.0.0':
+            f.write('version: {}\n'.format(using_version))
         f.write('repos:\n')
         for repo in subrepos:
             repo_info = subrepo_info[repo]
             local = repo_info['local']
             remote = repo_info['remote']
-            f.write('\t{} {} {}\n'.format(repo, local, remote))
+            if using_version != '0.0.0':
+                f.write('\t{} {} {}\n'.format(repo, local, remote))
+            else:
+                f.write('\t{} {}\n'.format(repo, remote))
 
         f.write('states:\n')
         for repo in subrepos:
