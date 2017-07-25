@@ -66,33 +66,34 @@ Saving
 ======
 
 To save the current *state* of all subrepositories, call 
-    :code:`git project save`
+
+:code:`git project save`
 
 To save only certain specified repositories, use 
 
-    :code:`git project save -- repo1-name repo2-name ...` 
+:code:`git project save -- repo1-name repo2-name ...` 
 
 This writes the current branch as well as the latest commit on that branch for each subrepository, into the .gitproj file.
 You should then add and commit the .gitproj file like normal:
 
-    :code:`git add .gitproj && git commit -m "Update gitproj"`
+:code:`git add .gitproj && git commit -m "Update gitproj"`
 
 Loading
 =======
 
 To return to this *state* later, just switch to the branch in your base repository where you saved the state, and run 
 
-    :code:`git project load`. 
+:code:`git project load`. 
 
 This resets your subrepository's local branch to the commit stored in the .gitproj file. If you have unpushed changes in the subrepository, you will be prompted to push these before updating your branch to ensure your commits aren't orphaned.
 
 If you want to load the exact commits on detached heads rather than resetting your local branch, use 
 
-    :code:`git project load --commit`.
+:code:`git project load --commit`.
 
 Similar to saving, you can load only specific repositories with 
 
-    :code:`git project load -- repo1-name repo2-name`
+:code:`git project load -- repo1-name repo2-name`
 
 
 Other
