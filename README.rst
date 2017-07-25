@@ -1,13 +1,15 @@
+###########
 git-project
-***********
+###########
 
 .. image:: https://travis-ci.org/aranzgeo/git-project.svg?branch=master&branch=master
     :target: https://travis-ci.org/aranzgeo/git-project
 
 Scripts extending git for better project and sub-repository management
 
+*******
 Purpose
--------
+*******
 
 git-project serves as an alternative to other git sub-module/sub-repo solutions.
 It is meant to be used in situations where both the parent repository and sub-repositories
@@ -21,16 +23,18 @@ to stop and work on a different feature that depends on an entirely different se
 with a single command.
 
 
+*******
 Install
--------
+*******
 
 Run :code:`make install` (or :code:`sudo make install`)
 This will install the git-project python script into your /usr/local/bin/.
 
 To uninstall, simply run :code:`make uninstall`
 
+*****
 Setup
------
+*****
 
 1. Create a .gitproj file with the format
 
@@ -48,20 +52,19 @@ Setup
 
 2. Run :code:`git project init` from the root of your project. This will attempt to clone the sub-repositories and add them to your .gitignore. 
 
-    .. note::
-        If you have already cloned the sub-repositories, skip the :code:`git project init` step, but make sure the sub-repositories are listed in your .gitignore.
+    If you have already cloned the sub-repositories, skip the :code:`git project init` step, but make sure the sub-repositories are listed in your .gitignore.
 
 
+*****
 Usage
------
+*****
 
 git-project saves the *state* of your repository and subrepositories. A *state* is the collection of feature branches for
 each repository.
 
 To save the *state*, call :code:`git project save` to save the current state of all subrepositories 
 
-.. tip:: 
-    To save only certain specified repositories, use :code:`git project save -- repo1-name repo2-name ...` 
+To save only certain specified repositories, use :code:`git project save -- repo1-name repo2-name ...` 
 
 This writes the current branch as well as the latest commit on that branch for each subrepository, into the .gitproj file.
 You should then add and commit the .gitproj file like normal: :code:`git add .gitproj && git commit -m "Update gitproj"`
@@ -88,8 +91,9 @@ Optional parameters are:
     -- : when saving, separates flags from the list of repos to save. If not specified, all repos will be saved
 
 
+****
 Bugs
-----
+****
 
 If you run into any problems with `git-project`, please make an
 `issue <https://github.com/aranzgeo/git-project/issues>`_
