@@ -10,6 +10,8 @@ class TestNewBranch(unittest.TestCase):
     @classmethod
     def setUpClass(self):
 
+        print '\n\n INITIALIZING REPOS \n\n'
+
         # clean up, just in case
         subprocess.call('rm -rf remote local 2>> /dev/null', shell=True)
 
@@ -21,14 +23,21 @@ class TestNewBranch(unittest.TestCase):
         subprocess.call('cd local;  git clone ../remote/parent', shell=True)
         subprocess.call('cd local;  git clone ../remote/child', shell=True)
 
+        print '\n\n CREATING .GITPROJ \n\n'
+
         # initialize the git-project for local/parent
+        subprocess.call('cd local/parent;  echo "version: 0.1.0" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "repos:" >> .gitproj', shell=True)
-        subprocess.call('cd local/parent;  echo "\tchild ../../remote/child" >> .gitproj', shell=True)
+        subprocess.call('cd local/parent;  echo "\tc child ../../remote/child" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  git add .gitproj; git commit -m "Initial Commit"; git push -u origin master', shell=True)
+
+        print '\n\n DO git project init \n\n'
 
         # clone the child repo into the parent through git project init
         subprocess.call('cd local/parent;  git project init', shell=True)
         subprocess.call('cd local/parent;  git add .gitignore; git commit -m ".gitignore"; git push', shell=True)
+
+        print '\n\n DO git project save \n\n'
 
         subprocess.call('cd local/parent;  git project save --force', shell=True)
         subprocess.call('cd local/parent;  git add .gitproj; git commit -m "save initial state"; git push', shell=True)
@@ -42,6 +51,9 @@ class TestNewBranch(unittest.TestCase):
         output = subprocess.check_output('cd local/parent/child; git remote show origin | grep Fetch | grep remote/child | wc -l', shell=True)
         self.assertEqual(output.strip().replace('\n',''), '1')
 
+
+        print '\n\n CHECKOUT new branch \n\n'
+
         # create a feature branch on the child that the parent does not know about
         subprocess.call('cd local/child; git checkout -b feature_branch', shell=True)
         subprocess.call('cd local/child; echo "ASDF" >> test.txt; git add test.txt; git commit -m "feature"; git push -u origin feature_branch', shell=True)
@@ -49,10 +61,10 @@ class TestNewBranch(unittest.TestCase):
         output = subprocess.check_output('cd local/child; git show | head -n1 | awk \'{print $2}\'', shell=True)
 
         # add the feature branch and commit to parent's .gitproj
-        subprocess.call('cd local/parent; cat .gitproj | head -n3 > .gitproj.bak', shell=True)
+        subprocess.call('cd local/parent; cat .gitproj | head -n4 > .gitproj.bak', shell=True)
         subprocess.call('cd local/parent; cat .gitproj.bak > .gitproj', shell=True)
         subprocess.call('cd local/parent; rm .gitproj.bak', shell=True)
-        subprocess.call('cd local/parent; echo "\tchild feature_branch {}" >> .gitproj'.format(output.strip()), shell=True)
+        subprocess.call('cd local/parent; echo "\tc feature_branch {}" >> .gitproj'.format(output.strip()), shell=True)
 
         # commit the .gitproj
         subprocess.call('cd local/parent; git add -u; git commit -m "update gitproj"; git push', shell=True)
@@ -66,7 +78,6 @@ class TestNewBranch(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-
         subprocess.call('rm -rf remote local', shell=True)
 
 if __name__ == '__main__':
