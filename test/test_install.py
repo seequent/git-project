@@ -2,7 +2,7 @@
 
 import subprocess
 import os.path
-import unittest, re
+import unittest
 
 
 class TestInstall(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestInstall(unittest.TestCase):
             output = subprocess.check_output('git project', shell=True)
         except subprocess.CalledProcessError as err:
             print err.output
-            self.assertEqual('Usage: git project <init|save|load> [--repos <repos>]\n', err.output)
+            self.assertEqual('Usage: git project <init|save|load|version> [-- <subrepos>]\n', err.output)
             self.assertEqual(1, err.returncode)
 
         subprocess.call('rm .gitproj', shell=True)
