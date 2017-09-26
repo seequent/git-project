@@ -30,12 +30,12 @@ class TestSaveLoad(unittest.TestCase):
         subprocess.call('cd local/parent;  git project init', shell=True)
         subprocess.call('cd local/parent;  git add .gitignore; git commit -m ".gitignore"; git push', shell=True)
 
-        output = subprocess.check_output('cd local/parent; ls | grep child | awk \'{print $1}\'', shell=True)
-        self.assertEqual(output, 'child\n')
+        output = subprocess.call('test -d local/parent/child;', shell=True)
+        self.assertEqual(output, 0)
 
         output = subprocess.check_output('cd local/parent/child; git remote show origin | grep Fetch | grep remote/child | wc -l', shell=True)
 
-        self.assertEqual(output.strip().replace('\n',''), '1')
+        self.assertEqual(output.strip(), '1')
 
         subprocess.call('cd local/parent/child; echo "Asdf" > test.txt; git add test.txt; git commit -m "Initial Commit"; git push', shell=True)
 
