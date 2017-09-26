@@ -457,7 +457,10 @@ elif MODE == 'load':
 
             if checkout == 'y':
                 subprocess.call('git fetch origin --prune', shell=True)
-                subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
+                res = subprocess.call('git checkout -B {} {}'.format(branch, commit), shell=True)
+                if res != 0:
+                    print '\n\nError checking out commit {} on branch {}. Is {} pushed?'.format(commit, branch, repo)
+                    finish(1);
 
                 if subprocess.call('git status | grep "behind"', shell=True) == 0:
                     if update or automerge or force:
