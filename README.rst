@@ -7,6 +7,14 @@ git-project
 
 Scripts extending git for better project and sub-repository management
 
+**************
+Overview Video
+**************
+
+.. image:: https://img.youtube.com/vi/1BRwXzDFfTQ/0.jpg
+    :target: https://www.youtube.com/watch?v=1BRwXzDFfTQ
+    :alt: Git Project
+
 *******
 Purpose
 *******
