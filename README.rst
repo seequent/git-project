@@ -1,13 +1,11 @@
-###########
 git-project
 ###########
 
-.. image:: https://travis-ci.org/aranzgeo/git-project.svg?branch=master&branch=master
-    :target: https://travis-ci.org/aranzgeo/git-project
+.. image:: https://travis-ci.org/seequent/git-project.svg?branch=master
+    :target: https://travis-ci.org/seequent/git-project
 
 Scripts extending git for better project and sub-repository management
 
-**************
 Overview Video
 **************
 
@@ -15,7 +13,7 @@ Overview Video
     :target: https://www.youtube.com/watch?v=1BRwXzDFfTQ
     :alt: Git Project
 
-*******
+
 Purpose
 *******
 
@@ -31,7 +29,6 @@ to stop and work on a different feature that depends on an entirely different se
 with a single command.
 
 
-*******
 Install
 *******
 
@@ -40,7 +37,7 @@ This will install the git-project python script into your /usr/local/bin/.
 
 To uninstall, simply run :code:`make uninstall`
 
-*****
+
 Setup
 *****
 
@@ -63,7 +60,6 @@ Setup
     If you have already cloned the sub-repositories, skip the :code:`git project init` step, but make sure the sub-repositories are listed in your .gitignore.
 
 
-*****
 Usage
 *****
 
@@ -120,9 +116,8 @@ Optional flags you can pass to :code:`git project` include:
 :code:`--`: separates flags from the list of repos to save/load. If not specified, all repos will be saved/loaded
 
 
-****
 Bugs
 ****
 
 If you run into any problems with `git-project`, please make an
-`issue <https://github.com/aranzgeo/git-project/issues>`_
+`issue <https://github.com/seequent/git-project/issues>`_
