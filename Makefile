@@ -34,5 +34,7 @@ uninstall:
 	    rm $(LOCALPATH)/$(EXE); \
 	fi
 
+reinstall: uninstall install
+
 tests:
 	nosetests
