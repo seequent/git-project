@@ -3,7 +3,7 @@ SYSPATH = /usr/local/bin
 LOCALPATH = $(HOME)/git-project/bin
 EXE = git-project
 
-.PHONY: all help install uninstall tests
+.PHONY: all help install uninstall tests reinstall
 
 all: help
 
@@ -36,5 +36,5 @@ uninstall:
 
 reinstall: uninstall install
 
-tests:
+tests: reinstall
 	nosetests

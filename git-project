@@ -212,6 +212,8 @@ parsing = 0
 firstline = True
 for line in lines:
     splitline = line.split(' ')
+    if line.strip() == '':
+        continue
     if parsing == 0 and splitline[0] == 'version:':
         using_version = splitline[1]
         check_version(using_version)
@@ -241,8 +243,6 @@ for line in lines:
         subrepos.append(repo)
     elif parsing == 2:
         info = line.split(' ')
-        if len(info.strip()) == 0:
-            continue
         repo = info[0]
         branch = info[1]
         commit = info[2]
