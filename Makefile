@@ -36,5 +36,5 @@ uninstall:
 
 reinstall: uninstall install
 
-tests: reinstall
+tests:
 	nosetests
