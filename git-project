@@ -212,6 +212,8 @@ parsing = 0
 firstline = True
 for line in lines:
     splitline = line.split(' ')
+    if line.strip() == '':
+        continue
     if parsing == 0 and splitline[0] == 'version:':
         using_version = splitline[1]
         check_version(using_version)

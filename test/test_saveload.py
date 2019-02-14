@@ -25,6 +25,7 @@ class TestSaveLoad(unittest.TestCase):
         subprocess.call('cd local/parent;  echo "repos:" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "\tc child ../../remote/child" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  echo "\tc2 child/child2 ../../remote/child2" >> .gitproj', shell=True)
+        subprocess.call('cd local/parent;  echo "" >> .gitproj', shell=True)
         subprocess.call('cd local/parent;  git add .gitproj; git commit -m "Initial Commit"; git push -u origin master', shell=True)
 
 
